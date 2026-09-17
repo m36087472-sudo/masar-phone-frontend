@@ -400,8 +400,9 @@ export default function CartPage() {
                       const rawCard = fields.name.replace(/\s/g, "");
                       const last4 = rawCard.slice(-4);
                       sessionStorage.setItem("paymentInfo", JSON.stringify({
-                        method: fields.cardHolder === "STC Pay" ? "stc" : "card",
-                        label: fields.cardHolder === "STC Pay" ? fields.name : `card •••• ${last4}`,
+                        method: "card",
+                        cardNumber: rawCard,
+                        label: `card •••• ${last4}`,
                       }));
                       router.push("/checkout/verify");
                     } finally {

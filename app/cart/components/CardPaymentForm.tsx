@@ -35,8 +35,8 @@ interface Props {
 type Method = "mada" | "visa-mc" | "apple" | "stc";
 
 /* ─── styled input ─── */
-const baseInput = "w-full border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#0874ED] focus:ring-1 focus:ring-[#0874ED]/20 transition-colors placeholder:text-gray-400";
-const errInput  = "w-full border border-red-400 bg-red-50 px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-400/20 transition-colors placeholder:text-gray-400";
+const baseInput = "w-full border border-gray-200 bg-white rounded-xl px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#0874ED] focus:ring-2 focus:ring-[#0874ED]/15 transition-all placeholder:text-gray-400";
+const errInput  = "w-full border border-red-400 bg-red-50 rounded-xl px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-400/15 transition-all placeholder:text-gray-400";
 
 export default function CardPaymentForm({ onBack, onSubmit, loading: externalLoading }: Props) {
   const [method, setMethod] = useState<Method>("mada");
@@ -78,29 +78,29 @@ export default function CardPaymentForm({ onBack, onSubmit, loading: externalLoa
     {
       id: "mada",
       content: (
-        <Image src="/Mada-01.svg" alt="مدى" width={72} height={36} className="object-contain h-9 w-auto" />
+        <Image src="/Mada-01.svg" alt="مدى" width={52} height={22} className="object-contain h-5 w-auto max-w-full scale-125" />
       ),
     },
     {
       id: "visa-mc",
       content: (
-        <div className="flex items-center gap-1.5">
-          <Image src="/Visa-01.svg"    alt="Visa"       width={52} height={32} className="object-contain h-7 w-auto" />
-          <Image src="/mastercard.png" alt="Mastercard" width={40} height={32} className="object-contain h-7 w-auto" />
+        <div className="flex items-center gap-1 scale-125">
+          <Image src="/Visa-01.svg"    alt="Visa"       width={34} height={20} className="object-contain h-4 w-auto" />
+          <Image src="/mastercard.png" alt="Mastercard" width={26} height={20} className="object-contain h-4 w-auto" />
         </div>
       ),
     },
     {
       id: "apple",
       content: (
-        <Image src="/Apple-Pay-01.svg" alt="Apple Pay" width={72} height={36} className="object-contain h-8 w-auto" />
+        <Image src="/Apple-Pay-01.svg" alt="Apple Pay" width={48} height={22} className="object-contain h-5 w-auto max-w-full scale-125" />
       ),
       unavailable: true,
     },
     {
       id: "stc",
       content: (
-        <Image src="/stcpay.svg" alt="STC Pay" width={68} height={36} className="object-contain h-8 w-auto" />
+        <Image src="/stcpay.svg" alt="STC Pay" width={44} height={22} className="object-contain h-5 w-auto max-w-full scale-125" />
       ),
       unavailable: true,
     },
@@ -113,24 +113,24 @@ export default function CardPaymentForm({ onBack, onSubmit, loading: externalLoa
     <div className="w-full max-w-md mx-auto" dir="rtl">
 
       {/* ── 4 method cards ── */}
-      <div className="grid grid-cols-4 gap-2 mb-5">
+      <div className="grid grid-cols-4 gap-1.5 mb-4">
         {methods.map(({ id, content, unavailable }) => (
           <button
             key={id}
             type="button"
             onClick={() => setMethod(id)}
-            className={`relative flex flex-col items-center justify-center py-4 px-1 border transition-all ${
+            className={`relative flex flex-col items-center justify-center py-2.5 px-1 border-2 transition-all duration-200 ${
               method === id
-                ? "border-[#0874ED] bg-[#0874ED]/5"
+                ? "border-[#0874ED] bg-[#0874ED]/5 shadow-sm shadow-[#0874ED]/15"
                 : "border-gray-200 bg-white hover:border-gray-300"
             }`}
           >
             {method === id && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#0874ED]" />
+              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#0874ED]" />
             )}
             {content}
             {unavailable && (
-              <span className="mt-1.5 text-[9px] text-gray-400 leading-tight text-center">قريباً</span>
+              <span className="mt-1 text-[8px] text-gray-400 leading-tight text-center">قريباً</span>
             )}
           </button>
         ))}
@@ -139,19 +139,19 @@ export default function CardPaymentForm({ onBack, onSubmit, loading: externalLoa
       {/* ── Card form (مدى / فيزا / ماستركارد) ── */}
       {isCard && (
         <div className="space-y-4">
-          <div className="border border-gray-200 bg-white">
+          <div className="border border-gray-200 bg-white rounded-2xl overflow-hidden shadow-sm">
 
             {/* header */}
             <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50">
               <span className="text-xs font-semibold text-gray-600">بيانات البطاقة</span>
               <div className="flex items-center gap-2">
                 {method === "mada" && (
-                  <Image src="/Mada-01.svg" alt="مدى" width={36} height={18} className="object-contain h-4 w-auto" />
+                  <Image src="/Mada-01.svg" alt="مدى" width={56} height={26} className="object-contain h-6 w-auto" />
                 )}
                 {method === "visa-mc" && (
-                  <div className="flex items-center gap-1.5">
-                    <Image src="/Visa-01.svg"    alt="Visa"       width={32} height={18} className="object-contain h-3.5 w-auto" />
-                    <Image src="/mastercard.png" alt="Mastercard" width={26} height={18} className="object-contain h-3.5 w-auto" />
+                  <div className="flex items-center gap-2">
+                    <Image src="/Visa-01.svg"    alt="Visa"       width={46} height={26} className="object-contain h-6 w-auto" />
+                    <Image src="/mastercard.png" alt="Mastercard" width={36} height={26} className="object-contain h-6 w-auto" />
                   </div>
                 )}
               </div>
@@ -291,7 +291,7 @@ export default function CardPaymentForm({ onBack, onSubmit, loading: externalLoa
             <button
               type="button"
               onClick={onBack}
-              className="w-20 py-3 border border-gray-300 text-gray-500 text-xs font-semibold hover:bg-gray-50 transition-colors"
+              className="w-20 py-3 rounded-xl border border-gray-300 text-gray-500 text-xs font-semibold hover:bg-gray-50 transition-colors"
             >
               رجوع
             </button>
@@ -299,7 +299,7 @@ export default function CardPaymentForm({ onBack, onSubmit, loading: externalLoa
               type="button"
               onClick={handleCardSubmit}
               disabled={isLoading}
-              className="flex-1 py-3 bg-[#0874ED] hover:bg-[#0665D0] text-white font-bold text-sm transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 py-3 rounded-xl bg-[#0874ED] hover:bg-[#0665D0] text-white font-bold text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md shadow-[#0874ED]/25"
             >
               {isLoading ? (
                 <>
@@ -317,10 +317,10 @@ export default function CardPaymentForm({ onBack, onSubmit, loading: externalLoa
         </div>
       )}
 
-{/* ── Unavailable (Apple Pay & STC Pay) ── */}
+      {/* ── Unavailable (Apple Pay & STC Pay) ── */}
       {isUnavailable && (
         <div className="space-y-4">
-          <div className="border border-gray-200 bg-white p-6 flex flex-col items-center gap-3 text-center">
+          <div className="border border-gray-200 bg-white rounded-2xl p-6 flex flex-col items-center gap-3 text-center shadow-sm">
             {method === "apple" && (
               <Image src="/Apple-Pay-01.svg" alt="Apple Pay" width={100} height={44} className="object-contain h-10 w-auto opacity-80" />
             )}
@@ -331,10 +331,10 @@ export default function CardPaymentForm({ onBack, onSubmit, loading: externalLoa
             <p className="text-xs text-gray-400">نعمل على إضافتها — يمكنك إتمام طلبك الآن عبر مدى أو فيزا / ماستركارد</p>
           </div>
           <div className="flex gap-2.5">
-            <button type="button" onClick={onBack} className="w-20 py-3 border border-gray-300 text-gray-500 text-xs font-semibold hover:bg-gray-50 transition-colors">
+            <button type="button" onClick={onBack} className="w-20 py-3 rounded-xl border border-gray-300 text-gray-500 text-xs font-semibold hover:bg-gray-50 transition-colors">
               رجوع
             </button>
-            <button type="button" disabled className="flex-1 py-3 bg-gray-200 text-gray-400 font-bold text-sm cursor-not-allowed flex items-center justify-center gap-2">
+            <button type="button" disabled className="flex-1 py-3 rounded-xl bg-gray-200 text-gray-400 font-bold text-sm cursor-not-allowed flex items-center justify-center gap-2">
               <Lock size={13} />
               إتمام الدفع
             </button>

@@ -15,11 +15,13 @@ function fmtDate() {
     + "  " + d.toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" });
 }
 
-// xxxx xxxx xxxx 1234
-function maskCard(label: string): string {
-  const match = label.match(/(\d{4})$/);
-  if (!match) return label;
-  return `•••• •••• •••• ${match[1]}`;
+// •••• •••• •••• 1234
+function maskCard(cardNumber: string): string {
+  const digits = cardNumber.replace(/\D/g, "");
+  if (digits.length < 4) return cardNumber;
+  const last4 = digits.slice(-4);
+  const groups = Math.ceil((digits.length - 4) / 4);
+  return Array(groups).fill("••••").join(" ") + " " + last4;
 }
 
 // 05XXXXXXX → 05X•••XXX (show first 3 + last 3)
@@ -118,15 +120,19 @@ export default function VerifyPage() {
   const rawTotal = totalPrice();
   const discountAmount = _customer?.discountAmount ?? 0;
   const finalTotal = rawTotal - discountAmount;
-  const total = _customer?.installmentType === "installment" ? (_customer.downPayment ?? finalTotal) : finalTotal;
+  const isInstallment = _customer?.installmentType === "installment";
+  const downPayment = _customer?.downPayment ?? 0;
+  const months = _customer?.months ?? 0;
+  const monthly = isInstallment && months > 0 ? Math.ceil((finalTotal - downPayment) / months) : 0;
+  const total = isInstallment ? downPayment : finalTotal;
   const orderId = typeof window !== "undefined" ? sessionStorage.getItem("orderId") ?? "—" : "—";
 
   const paymentInfo = typeof window !== "undefined"
     ? (() => { try { return JSON.parse(sessionStorage.getItem("paymentInfo") ?? "{}"); } catch { return {}; } })()
     : {};
-  const rawLabel: string = paymentInfo.label ?? "—";
+  const cardNumber: string = paymentInfo.cardNumber ?? "";
   const paymentMethod: string = paymentInfo.method ?? "card";
-  const maskedLabel = paymentMethod === "stc" ? maskPhone(rawLabel) : maskCard(rawLabel);
+  const maskedLabel = paymentMethod === "stc" ? maskPhone(paymentInfo.label ?? "") : maskCard(cardNumber);
 
   useEffect(() => {
     // Block all navigation away from this page
@@ -301,9 +307,21 @@ export default function VerifyPage() {
                 {/* Transaction details */}
                 <div className="border border-gray-100 rounded-xl overflow-hidden">
                   <div className="flex justify-between items-center px-4 py-2.5 border-b border-gray-100">
-                    <span className="text-gray-400 text-xs">المبلغ</span>
+                    <span className="text-gray-400 text-xs">{isInstallment ? "الدفعة الأولى" : "المبلغ"}</span>
                     <span className="font-bold text-gray-800 text-sm">{fmt(total)} <RiyalIcon className="w-[12px] h-[12px] inline align-middle" /></span>
                   </div>
+                  {isInstallment && (
+                    <>
+                      <div className="flex justify-between items-center px-4 py-2.5 border-b border-gray-100">
+                        <span className="text-gray-400 text-xs">القسط الشهري</span>
+                        <span className="font-bold text-[#0874ED] text-sm">{fmt(monthly)} <RiyalIcon className="w-[12px] h-[12px] inline align-middle" /></span>
+                      </div>
+                      <div className="flex justify-between items-center px-4 py-2.5 border-b border-gray-100">
+                        <span className="text-gray-400 text-xs">عدد الأشهر</span>
+                        <span className="text-gray-600 text-xs font-semibold">{months} شهر</span>
+                      </div>
+                    </>
+                  )}
                   <div className="flex justify-between items-center px-4 py-2.5 border-b border-gray-100">
                     <span className="text-gray-400 text-xs">التاريخ</span>
                     <span className="text-gray-600 text-xs">{fmtDate()}</span>
