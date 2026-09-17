@@ -1,5 +1,5 @@
 import React from "react";
-import RiyalIcon from "../../../../components/RiyalIcon";
+import RiyalIcon from "../../../components/RiyalIcon";
 
 export function Section({ icon, iconBg, title, children }: {
   icon: React.ReactNode; iconBg: string; title: string; children: React.ReactNode;

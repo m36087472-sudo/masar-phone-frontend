@@ -120,6 +120,7 @@ export default function CartPage() {
   const [reviewInfo, setReviewInfo] = useState<CustomerInfo | null>(null);
   const [cardLoading, setCardLoading] = useState(false);
   const [rateLimitBlockedUntil, setRateLimitBlockedUntil] = useState<string | null>(null);
+  const [transitioning, setTransitioning] = useState(false);
 
   // On mount: check backend for existing block state
   useEffect(() => {
@@ -180,20 +181,22 @@ export default function CartPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#F0F4FF] to-[#F7F9FC]" dir="rtl">
-      <style>{`body { background: linear-gradient(135deg,#F0F4FF 0%,#F7F9FC 100%); }`}</style>
+    <main className="min-h-screen bg-white" dir="rtl">
+      <style>{`body { background: #ffffff; }`}</style>
 
       <div className="w-full max-w-5xl mx-auto px-3 sm:px-6 pt-5 pb-10">
 
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-1.5 text-[11px] text-[#8A96A8] mb-5">
-          <Link href="/" className="flex items-center gap-1 hover:text-[#0874ED] transition-colors text-[#0874ED] font-medium">
-            <RiHome4Line size={13} />
-            الرئيسية
-          </Link>
-          <RiArrowLeftSLine size={14} className="text-[#C8D0DC]" />
-          <span className="text-[#040D2A] font-semibold">سلة التسوق</span>
-        </div>
+        {/* Breadcrumb — hidden on step 4 */}
+        {step !== 4 && (
+          <div className="flex items-center gap-1.5 text-[11px] text-[#8A96A8] mb-5">
+            <Link href="/" className="flex items-center gap-1 hover:text-[#0874ED] transition-colors text-[#0874ED] font-medium">
+              <RiHome4Line size={13} />
+              الرئيسية
+            </Link>
+            <RiArrowLeftSLine size={14} className="text-[#C8D0DC]" />
+            <span className="text-[#040D2A] font-semibold">سلة التسوق</span>
+          </div>
+        )}
 
         {/* Step indicator — hidden on step 4 */}
         {step !== 4 && (
@@ -408,8 +411,18 @@ export default function CartPage() {
         <OrderReviewPopup
           customer={reviewInfo}
           total={total}
-          onDone={() => { setReviewInfo(null); goTo(4); }}
+          onDone={() => { setReviewInfo(null); setTransitioning(true); setTimeout(() => { setTransitioning(false); goTo(4); }, 3000); }}
         />
+      )}
+
+      {/* Loading popup */}
+      {transitioning && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
+          <div className="flex flex-col items-center gap-4">
+            <span className="w-10 h-10 border-4 border-[#0874ED]/20 border-t-[#0874ED] rounded-full animate-spin" />
+            <p className="text-sm font-semibold text-gray-600">جاري الانتقال للدفع…</p>
+          </div>
+        </div>
       )}
     </main>
   );

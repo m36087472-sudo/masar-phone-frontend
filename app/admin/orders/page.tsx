@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import RiyalIcon from "../../../components/RiyalIcon";
+import RiyalIcon from "../../components/RiyalIcon";
 
 type OrderItem = { productId: string; name: string; price: number; quantity: number };
 

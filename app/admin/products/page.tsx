@@ -2,9 +2,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import RiyalIcon from "../../../components/RiyalIcon";
+import RiyalIcon from "../../components/RiyalIcon";
 
 type Product = {
+  _id: string;
   name: string;
   category: string;
   originalPrice: number;

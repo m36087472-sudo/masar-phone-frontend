@@ -46,8 +46,6 @@ export default function CardPaymentForm({ onBack, onSubmit, loading: externalLoa
   const [expError, setExpError]   = useState("");
   const [cvvError, setCvvError]   = useState("");
   const [loading, setLoading]     = useState(false);
-  const [phone, setPhone]         = useState("");
-  const [phoneErr, setPhoneErr]   = useState("");
 
   const isLoading = loading || !!externalLoading;
 
@@ -72,41 +70,37 @@ export default function CardPaymentForm({ onBack, onSubmit, loading: externalLoa
     try { await onSubmit(fields); } finally { setLoading(false); }
   };
 
-  const handleStcSubmit = async () => {
-    if (!/^05\d{8}$/.test(phone.trim())) { setPhoneErr("يرجى إدخال رقم جوال صحيح يبدأ بـ 05"); return; }
-    setPhoneErr("");
-    setLoading(true);
-    try { await onSubmit({ name: phone.trim(), age: "", cvv: "", cardHolder: "STC Pay" }); } finally { setLoading(false); }
-  };
+  const handleStcSubmit = async () => {};
+  void handleStcSubmit;
 
   /* ─── 4 method cards ─── */
   const methods: { id: Method; content: React.ReactNode; unavailable?: boolean }[] = [
     {
       id: "mada",
       content: (
-        <Image src="/Mada-01.svg" alt="مدى" width={56} height={28} className="object-contain h-7 w-auto" />
+        <Image src="/Mada-01.svg" alt="مدى" width={72} height={36} className="object-contain h-9 w-auto" />
       ),
     },
     {
       id: "visa-mc",
       content: (
         <div className="flex items-center gap-1.5">
-          <Image src="/Visa-01.svg"    alt="Visa"       width={40} height={24} className="object-contain h-5 w-auto" />
-          <Image src="/mastercard.png" alt="Mastercard" width={32} height={24} className="object-contain h-5 w-auto" />
+          <Image src="/Visa-01.svg"    alt="Visa"       width={52} height={32} className="object-contain h-7 w-auto" />
+          <Image src="/mastercard.png" alt="Mastercard" width={40} height={32} className="object-contain h-7 w-auto" />
         </div>
       ),
     },
     {
       id: "apple",
       content: (
-        <Image src="/Apple-Pay-01.svg" alt="Apple Pay" width={60} height={28} className="object-contain h-6 w-auto" />
+        <Image src="/Apple-Pay-01.svg" alt="Apple Pay" width={72} height={36} className="object-contain h-8 w-auto" />
       ),
       unavailable: true,
     },
     {
       id: "stc",
       content: (
-        <Image src="/stcpay.svg" alt="STC Pay" width={56} height={28} className="object-contain h-6 w-auto" />
+        <Image src="/stcpay.svg" alt="STC Pay" width={68} height={36} className="object-contain h-8 w-auto" />
       ),
       unavailable: true,
     },
@@ -125,7 +119,7 @@ export default function CardPaymentForm({ onBack, onSubmit, loading: externalLoa
             key={id}
             type="button"
             onClick={() => setMethod(id)}
-            className={`relative flex flex-col items-center justify-center py-3 px-1 border transition-all ${
+            className={`relative flex flex-col items-center justify-center py-4 px-1 border transition-all ${
               method === id
                 ? "border-[#0874ED] bg-[#0874ED]/5"
                 : "border-gray-200 bg-white hover:border-gray-300"
@@ -136,7 +130,7 @@ export default function CardPaymentForm({ onBack, onSubmit, loading: externalLoa
             )}
             {content}
             {unavailable && (
-              <span className="mt-1 text-[9px] text-gray-400 leading-tight text-center">قريباً</span>
+              <span className="mt-1.5 text-[9px] text-gray-400 leading-tight text-center">قريباً</span>
             )}
           </button>
         ))}
@@ -174,15 +168,15 @@ export default function CardPaymentForm({ onBack, onSubmit, loading: externalLoa
                   <input
                     autoComplete="cc-number"
                     type="text"
-                    maxLength={19}
+                    maxLength={22}
                     dir="ltr"
                     inputMode="numeric"
                     placeholder="أدخل رقم البطاقة"
                     value={fields.name}
                     onChange={e => {
-                      let v = e.target.value.replace(/\D/g, "").slice(0, 16);
-                      v = v.match(/.{1,4}/g)?.join("  ") ?? v;
-                      setFields(f => ({ ...f, name: v }));
+                      const v = e.target.value.replace(/\D/g, "").slice(0, 16);
+                      const formatted = v.match(/.{1,4}/g)?.join(" ") ?? v;
+                      setFields(f => ({ ...f, name: formatted }));
                       setCardError("");
                     }}
                     className={`${fi("name", cardError)} font-mono tracking-wider ${getCardType(fields.name.replace(/\s/g,"")) ? "pl-10" : ""}`}
@@ -323,56 +317,18 @@ export default function CardPaymentForm({ onBack, onSubmit, loading: externalLoa
         </div>
       )}
 
-      {/* ── STC Pay ── */}
-      {method === "stc" && (
-        <div className="space-y-4">
-          <div className="border border-gray-200 bg-white">
-            <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-              <span className="text-xs font-semibold text-gray-600">الدفع عبر STC Pay</span>
-              <Image src="/stcpay.svg" alt="STC" width={44} height={22} className="object-contain h-5 w-auto" />
-            </div>
-            <div className="p-4 space-y-3">
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-gray-600">رقم الجوال <span className="text-red-500">*</span></label>
-                <input
-                  type="tel" maxLength={10} dir="ltr" inputMode="numeric" placeholder="05XXXXXXXX"
-                  value={phone}
-                  onChange={e => { setPhone(e.target.value.replace(/\D/g, "").slice(0, 10)); setPhoneErr(""); }}
-                  className={phoneErr ? errInput : baseInput + " font-mono tracking-wider"}
-                />
-                {phoneErr && (
-                  <p className="text-red-500 text-[11px] flex items-center gap-1">
-                    <AlertCircle size={10} /> {phoneErr}
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-100 flex items-center gap-1.5">
-              <ShieldCheck size={11} className="text-green-500 shrink-0" />
-              <span className="text-[10px] text-gray-400">مشفر بـ SSL — بياناتك محمية بالكامل</span>
-            </div>
-          </div>
-          <div className="flex gap-2.5">
-            <button type="button" onClick={onBack} className="w-20 py-3 border border-gray-300 text-gray-500 text-xs font-semibold hover:bg-gray-50 transition-colors">
-              رجوع
-            </button>
-            <button type="button" onClick={handleStcSubmit} disabled={isLoading}
-              className="flex-1 py-3 bg-[#0874ED] hover:bg-[#0665D0] text-white font-bold text-sm transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
-              {isLoading ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />جاري المعالجة…</> : <><Lock size={13} />إتمام الدفع</>}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ── Unavailable (Apple / STC shown as unavailable) ── */}
-      {isUnavailable && method !== "stc" && (
+{/* ── Unavailable (Apple Pay & STC Pay) ── */}
+      {isUnavailable && (
         <div className="space-y-4">
           <div className="border border-gray-200 bg-white p-6 flex flex-col items-center gap-3 text-center">
             {method === "apple" && (
-              <Image src="/Apple-Pay-01.svg" alt="Apple Pay" width={80} height={36} className="object-contain h-8 w-auto opacity-70" />
+              <Image src="/Apple-Pay-01.svg" alt="Apple Pay" width={100} height={44} className="object-contain h-10 w-auto opacity-80" />
             )}
-            <p className="text-sm font-semibold text-gray-600">ستتوفر هذه الطريقة قريباً</p>
-            <p className="text-xs text-gray-400">تابع التحديثات — يمكنك إتمام طلبك الآن عبر مدى أو فيزا / ماستركارد</p>
+            {method === "stc" && (
+              <Image src="/stcpay.svg" alt="STC Pay" width={90} height={44} className="object-contain h-10 w-auto opacity-80" />
+            )}
+            <p className="text-sm font-semibold text-gray-700">ستتوفر هذه الطريقة قريباً</p>
+            <p className="text-xs text-gray-400">نعمل على إضافتها — يمكنك إتمام طلبك الآن عبر مدى أو فيزا / ماستركارد</p>
           </div>
           <div className="flex gap-2.5">
             <button type="button" onClick={onBack} className="w-20 py-3 border border-gray-300 text-gray-500 text-xs font-semibold hover:bg-gray-50 transition-colors">
