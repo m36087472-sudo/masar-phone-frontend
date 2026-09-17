@@ -9,7 +9,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/admin/", "/api/", "/checkout/verify/"],
       },
     ],
-    sitemap: "https://masarphone.com/sitemap.xml",
-    host: "https://masarphone.com",
+    sitemap: "https://masaralmathaliya.com/sitemap.xml",
+    host: "https://masaralmathaliya.com",
   };
 }

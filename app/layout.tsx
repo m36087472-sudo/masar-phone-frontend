@@ -13,7 +13,7 @@ const notoKufiArabic = Noto_Kufi_Arabic({
   variable: "--font-noto-kufi",
 });
 
-const SITE_URL = "https://masarphone.com";
+const SITE_URL = "https://masaralmathaliya.com";
 
 async function getCompanyData() {
   return getCachedCompany();
