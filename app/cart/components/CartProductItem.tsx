@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { RiDeleteBin6Line, RiSubtractLine, RiAddLine } from "react-icons/ri";
+import RiyalIcon from "../../components/RiyalIcon";
 import type { Product } from "../../components/products/types";
 
 const fmt = (n: number) => n.toLocaleString("en-US");
@@ -58,20 +59,14 @@ export default function CartProductItem({ product, qty, cartKey, onRemove, onUpd
           </button>
         </div>
 
-        {/* الصف الثاني: السعر */}
-        <div className="flex items-baseline gap-1 mt-1 flex-wrap">
-          <span className="text-sm sm:text-base font-extrabold text-[#0874ED]">{fmt(price)}</span>
-          <span className="text-[11px] text-[#8A96A8]">ريال</span>
-          {hasDiscount && (
-            <span className="text-[10px] sm:text-xs text-[#B0BCCE] line-through">{fmt(product.originalPrice!)} ريال</span>
-          )}
-        </div>
-
-        {/* الصف الثالث: الإجمالي + أزرار الكمية */}
+        {/* الصف الثاني: السعر + أزرار الكمية */}
         <div className="flex items-center justify-between mt-1.5 sm:mt-2">
-          <div className="flex items-center gap-1">
-            <span className="text-[10px] sm:text-[11px] text-[#8A96A8]">الإجمالي:</span>
-            <span className="text-[11px] sm:text-xs font-bold text-[#040D2A]">{fmt(price * qty)} ريال</span>
+          <div className="flex items-baseline gap-1 flex-wrap">
+            <span className="text-sm sm:text-base font-extrabold text-[#0874ED]">{fmt(price * qty)}</span>
+            <RiyalIcon className="w-[13px] h-[13px] inline align-middle" />
+            {hasDiscount && (
+              <span className="text-[10px] sm:text-xs text-[#B0BCCE] line-through">{fmt(product.originalPrice! * qty)} <RiyalIcon className="w-[10px] h-[10px] inline align-middle" /></span>
+            )}
           </div>
 
           {/* أزرار الكمية */}

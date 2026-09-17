@@ -9,6 +9,7 @@ import DesktopNav from "./DesktopNav";
 import MobileMenu from "./MobileMenu";
 import { useCartStore } from "../../store/cartStore";
 import { useCompanyStore } from "../../store/companyStore";
+import RiyalIcon from "../RiyalIcon";
 
 export default function Navbar({ initialLogo }: { initialLogo?: string }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -18,13 +19,16 @@ export default function Navbar({ initialLogo }: { initialLogo?: string }) {
   const [searching, setSearching] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchWrapRef = useRef<HTMLDivElement>(null);
-  const mounted = typeof window !== "undefined";
-  const itemCount = useCartStore((s) => mounted ? s.items.reduce((sum, i) => sum + i.qty, 0) : 0);
+  const itemCount = useCartStore((s) => s.items.reduce((sum, i) => sum + i.qty, 0));
   const { logo: storeLogo, setLogo } = useCompanyStore();
   const logo = storeLogo || initialLogo || "";
 
   const API_IMG = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-  const resolveImg = (src: string) => src.startsWith("http") ? src : `${API_IMG}${src.startsWith("/") ? src : "/" + src}`;
+  // Module-level helper inlined as const — avoids re-creation each render
+  const resolveImg = useCallback(
+    (src: string) => src.startsWith("http") ? src : `${API_IMG}${src.startsWith("/") ? src : "/" + src}`,
+    [API_IMG]
+  );
 
   // Seed the store with the SSR logo so admin updates still work
   useEffect(() => {
@@ -171,7 +175,7 @@ export default function Navbar({ initialLogo }: { initialLogo?: string }) {
                         <Image src={resolveImg(img)} alt={p.name} width={40} height={40} className="object-contain rounded" unoptimized />
                       )}
                       <span className="flex-1 text-sm text-gray-800 line-clamp-1">{p.name}</span>
-                      <span className="text-sm font-bold text-red-600 shrink-0">{price.toLocaleString("en-US")} ر.س</span>
+                      <span className="text-sm font-bold text-red-600 shrink-0 flex items-center gap-0.5">{price.toLocaleString("en-US")} <RiyalIcon className="inline w-[11px] h-[11px] align-middle" color="#0874ED" /></span>
                     </Link>
                   </li>
                 );

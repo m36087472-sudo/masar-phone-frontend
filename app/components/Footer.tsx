@@ -3,6 +3,9 @@ import Image from "next/image";
 import { FaWhatsapp, FaPhone, FaEnvelope, FaMapMarkerAlt } from "react-icons/fa";
 import { getCachedCompany } from "../lib/products-cache";
 
+// Pre-computed at build/module level — prevents a dynamic render just for getFullYear()
+const CURRENT_YEAR = new Date().getFullYear();
+
 function ensureAbsolute(url: string) {
   if (!url) return "";
   return url.startsWith("http://") || url.startsWith("https://") ? url : `https://${url}`;
@@ -171,13 +174,16 @@ export default async function Footer() {
         <div className="mt-4 pt-4 border-t border-[#040D2A]/10 flex flex-col sm:flex-row items-center justify-between gap-3">
 
           <p className="text-[#040D2A]/40 text-xs">
-            جميع الحقوق محفوظة © {new Date().getFullYear()} —{" "}
+            جميع الحقوق محفوظة © {CURRENT_YEAR} —{" "}
             <span className="text-[#0874ED] font-semibold">مسار الهاتف المعتمد</span>
           </p>
 
           <div className="flex items-center gap-3">
-            <Image src="/فيزا ماستر مدى.webp" alt="بطاقات الدفع" width={120} height={40} className="object-contain" style={{ width: 120, height: 40 }} />
-            <Image src="/Apple-Pay-01.png" alt="Apple Pay" width={80} height={40} className="object-contain" style={{ width: 80, height: 40 }} />
+            <Image src="/Visa-01.svg" alt="Visa" width={55} height={36} className="object-contain" style={{ width: 55, height: 36 }} />
+            <Image src="/mastercard.png" alt="Mastercard" width={55} height={36} className="object-contain" style={{ width: 55, height: 36 }} />
+            <Image src="/Mada-01.svg" alt="Mada" width={55} height={36} className="object-contain" style={{ width: 55, height: 36 }} />
+            <Image src="/stcpay.svg" alt="STC Pay" width={55} height={36} className="object-contain" style={{ width: 55, height: 36 }} />
+            <Image src="/Apple-Pay-01.svg" alt="Apple Pay" width={70} height={36} className="object-contain" style={{ width: 70, height: 36 }} />
           </div>
 
         </div>

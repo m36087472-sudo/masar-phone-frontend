@@ -8,19 +8,15 @@ import { getCachedCompany } from "./lib/products-cache";
 
 const notoKufiArabic = Noto_Kufi_Arabic({
   subsets: ["arabic"],
-  weight: ["300", "400", "500", "700"],
+  weight: ["400", "700"],
   display: "swap",
   variable: "--font-noto-kufi",
 });
 
 const SITE_URL = "https://masaralmathaliya.com";
 
-async function getCompanyData() {
-  return getCachedCompany();
-}
-
 export async function generateMetadata(): Promise<Metadata> {
-  const c = await getCompanyData();
+  const c = await getCachedCompany();
 
   const siteName = c.nameAr || "مسار الهاتف المعتمد";
   const description = c.details || "مسار الهاتف المعتمد — وجهتك الأولى لأحدث الهواتف الذكية بأقساط ميسرة وضمان معتمد في المملكة العربية السعودية. أفضل الأسعار على الجوالات، اللابتوبات، الأجهزة اللوحية والإكسسوارات.";
@@ -101,7 +97,9 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const c = await getCompanyData();
+  // getCachedCompany uses unstable_cache — same in-memory entry reused for
+  // generateMetadata above; no extra network call is made here.
+  const c = await getCachedCompany();
   const API_BASE = process.env.BACKEND_URL || "http://localhost:5000";
   const logo = c.logo
     ? (c.logo.startsWith("http") ? c.logo : `${API_BASE}${c.logo}`)

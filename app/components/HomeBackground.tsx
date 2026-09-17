@@ -1,3 +1,4 @@
+// Pure static server component — zero JS, zero hydration cost.
 export default function HomeBackground() {
   return (
     <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
@@ -10,7 +11,8 @@ export default function HomeBackground() {
           border-radius: 9999px;
           filter: blur(80px);
           opacity: 0.5;
-          transform: translate(-50%, -50%);
+          /* will-change promotes to its own GPU layer — avoids main-thread repaint */
+          will-change: transform;
         }
         .home-blob-1 {
           width: 500px; height: 500px;
@@ -24,8 +26,16 @@ export default function HomeBackground() {
           left: 75%; top: 5%;
           animation: blob2 26s ease-in-out infinite alternate;
         }
-        @keyframes blob1 { from { left:15%; top:10%; } to { left:28%; top:22%; } }
-        @keyframes blob2 { from { left:75%; top:5%; } to { left:60%; top:18%; } }
+        /* Use transform instead of left/top — avoids layout recalculation each frame */
+        @keyframes blob1 {
+          from { transform: translate(0, 0); }
+          to   { transform: translate(13%, 12%); }
+        }
+        @keyframes blob2 {
+          from { transform: translate(0, 0); }
+          to   { transform: translate(-15%, 13%); }
+        }
+        /* Pause animations when the tab is not visible to save CPU */
         @media (prefers-reduced-motion: reduce) {
           .home-blob { animation: none; }
         }

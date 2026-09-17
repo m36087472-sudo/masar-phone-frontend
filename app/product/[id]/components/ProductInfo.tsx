@@ -11,6 +11,7 @@ import {
 import type { Product } from "../../../components/products/types";
 import { useCartStore } from "../../../store/cartStore";
 import InstallmentCalculator from "./InstallmentCalculator";
+import RiyalIcon from "../../../components/RiyalIcon";
 
 const fmt = (n: number) => n.toLocaleString("en-US");
 
@@ -194,7 +195,7 @@ export default function ProductInfo({ product, selectedColor, selectedStorage, o
               <span className="text-2xl font-black text-gray-900 leading-none">
                 {fmt(salePrice ?? originalPrice)}
               </span>
-              <span className="text-[11px] font-bold text-gray-400">ر.س</span>
+              <RiyalIcon className="w-[14px] h-[14px] inline align-middle" />
               {hasDiscount && (
                 <>
                   <span className="text-[11px] text-gray-400 line-through">{fmt(originalPrice)}</span>
@@ -218,7 +219,7 @@ export default function ProductInfo({ product, selectedColor, selectedStorage, o
             <div className="flex items-center gap-2 bg-[#f7fdf0] rounded-xl px-3 py-2 border border-[#7CC043]/20">
               <IoFlash size={12} className="text-[#5a9030] shrink-0" />
               <p className="text-[11px] font-black text-[#3d6b1a]">
-                تقسيط متاح {installment.downPayment ? `• مقدم ${fmt(installment.downPayment)} ر.س` : ""}
+                تقسيط متاح {installment.downPayment ? <>• مقدم {fmt(installment.downPayment)} <RiyalIcon className="w-[11px] h-[11px] inline align-middle" /></> : ""}
               </p>
             </div>
           )}

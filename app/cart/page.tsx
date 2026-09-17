@@ -14,6 +14,7 @@ import CustomerInfoForm from "./components/CustomerInfoForm";
 import CartProductItem from "./components/CartProductItem";
 import CartSummary from "./components/CartSummary";
 import PaymentLogos from "./components/PaymentLogos";
+import RiyalIcon from "../components/RiyalIcon";
 import {
   RiShoppingCart2Line, RiArrowRightLine, RiHome4Line,
   RiArrowLeftSLine,
@@ -76,11 +77,12 @@ function MiniOrderSummary({
         </div>
         <div className="divide-y divide-[#F7F9FC]">
           {items.map(({ product, qty, cartKey }: { product: any; qty: number; cartKey: string }, idx: number) => {
+            const itemKey = cartKey || `item-${idx}`;
             const price = product.salePrice ?? product.originalPrice ?? product.price;
             const rawImg = product.images?.[0] || product.image;
             const img = rawImg ? resolveImg(rawImg) : undefined;
             return (
-              <div key={cartKey || idx} className="flex items-center gap-3 px-5 py-3.5">
+              <div key={itemKey} className="flex items-center gap-3 px-5 py-3.5">
                 <div className="relative w-12 h-12 shrink-0 bg-[#F7F9FC] rounded-xl overflow-hidden border border-[#E8EDF5]">
                   {img
                     ? <Image src={img} alt={product.name} fill className="object-contain p-1" />
@@ -91,7 +93,7 @@ function MiniOrderSummary({
                   <p className="text-xs font-semibold text-[#040D2A] truncate">{product.name.split("،")[0].trim()}{product.storage ? ` – ${product.storage}` : ""}{product.color ? ` | ${product.color}` : ""}</p>
                   <p className="text-[11px] text-[#8A96A8]">الكمية: {qty}</p>
                 </div>
-                <span className="text-sm font-bold text-[#040D2A] shrink-0">{fmt(price * qty)} <span className="text-[10px] font-normal text-[#B0BCCE]">ريال</span></span>
+                <span className="text-sm font-bold text-[#040D2A] shrink-0">{fmt(price * qty)} <RiyalIcon className="w-[11px] h-[11px] inline align-middle" /></span>
               </div>
             );
           })}
@@ -100,7 +102,7 @@ function MiniOrderSummary({
           <span className="text-sm font-bold text-[#040D2A]">الإجمالي</span>
           <div>
             <span className="text-xl font-extrabold text-[#0874ED]">{fmt(total)}</span>
-            <span className="text-xs text-[#B0BCCE] mr-1">ريال</span>
+            <RiyalIcon className="w-[13px] h-[13px] inline align-middle text-[#B0BCCE] mr-1" />
           </div>
         </div>
       </div>
@@ -193,29 +195,31 @@ export default function CartPage() {
           <span className="text-[#040D2A] font-semibold">سلة التسوق</span>
         </div>
 
-        {/* Step indicator */}
-        <div className="flex items-center gap-1 sm:gap-2 mb-6 w-full">
-          {stepDefs.map(({ n, label, icon: Icon }, idx) => (
-            <div key={n} className={`flex items-center gap-1 sm:gap-2 min-w-0 transition-all duration-300 ${step === n ? "flex-[2.5]" : "flex-1"}`}>
-              <button
-                onClick={() => n < step && goTo(n as 1 | 2 | 3 | 4)}
-                className={`flex items-center justify-center gap-1 sm:gap-1.5 px-1.5 sm:px-4 py-2 rounded-xl font-semibold transition-all w-full ${
-                  step === n
-                    ? "bg-[#0874ED] text-white shadow-md shadow-[#0874ED]/25 text-[11px] sm:text-xs"
-                    : n < step
-                    ? "bg-emerald-500 text-white cursor-pointer text-[9px] sm:text-xs"
-                    : "bg-white text-[#8A96A8] border border-[#E8EDF5] cursor-default text-[9px] sm:text-xs"
-                }`}
-              >
-                {n < step ? <RiCheckLine size={11} className="shrink-0" /> : <Icon size={11} className="shrink-0" />}
-                <span className={`truncate ${step === n ? "block" : "hidden sm:block"}`}>{label}</span>
-              </button>
-              {idx < 3 && (
-                <div className={`h-0.5 w-1.5 sm:w-8 shrink-0 rounded-full transition-all duration-500 ${step > n ? "bg-emerald-400" : "bg-[#E8EDF5]"}`} />
-              )}
-            </div>
-          ))}
-        </div>
+        {/* Step indicator — hidden on step 4 */}
+        {step !== 4 && (
+          <div className="flex items-center gap-1 sm:gap-2 mb-6 w-full">
+            {stepDefs.map(({ n, label, icon: Icon }, idx) => (
+              <div key={n} className={`flex items-center gap-1 sm:gap-2 min-w-0 transition-all duration-300 ${step === n ? "flex-[2.5]" : "flex-1"}`}>
+                <button
+                  onClick={() => n < step && goTo(n as 1 | 2 | 3 | 4)}
+                  className={`flex items-center justify-center gap-1 sm:gap-1.5 px-1.5 sm:px-4 py-2 rounded-xl font-semibold transition-all w-full ${
+                    step === n
+                      ? "bg-[#0874ED] text-white shadow-md shadow-[#0874ED]/25 text-[11px] sm:text-xs"
+                      : n < step
+                      ? "bg-emerald-500 text-white cursor-pointer text-[9px] sm:text-xs"
+                      : "bg-white text-[#8A96A8] border border-[#E8EDF5] cursor-default text-[9px] sm:text-xs"
+                  }`}
+                >
+                  {n < step ? <RiCheckLine size={11} className="shrink-0" /> : <Icon size={11} className="shrink-0" />}
+                  <span className={`truncate ${step === n ? "block" : "hidden sm:block"}`}>{label}</span>
+                </button>
+                {idx < 3 && (
+                  <div className={`h-0.5 w-1.5 sm:w-8 shrink-0 rounded-full transition-all duration-500 ${step > n ? "bg-emerald-400" : "bg-[#E8EDF5]"}`} />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
 
         <AnimatePresence mode="wait">
 
@@ -243,9 +247,9 @@ export default function CartPage() {
                   </div>
                   <div className="divide-y divide-[#F7F9FC]">
                     <AnimatePresence>
-                      {items.map(({ product, qty, cartKey }) => (
+                      {items.map(({ product, qty, cartKey }, idx) => (
                         <CartProductItem
-                          key={cartKey}
+                          key={cartKey || `cart-${idx}`}
                           product={product}
                           qty={qty}
                           cartKey={cartKey}
@@ -336,13 +340,7 @@ export default function CartPage() {
               className="flex flex-col lg:flex-row gap-5 items-start"
             >
               <div className="flex-1 w-full space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 bg-[#0874ED]/10 rounded-xl flex items-center justify-center">
-                    <RiSecurePaymentLine size={14} className="text-[#0874ED]" />
-                  </div>
-                  <h1 className="text-base font-bold text-[#040D2A]">إتمام الدفع</h1>
-                </div>
-<RateLimitBanner blockedUntil={rateLimitBlockedUntil} />
+                <RateLimitBanner blockedUntil={rateLimitBlockedUntil} />
                 <CardPaymentForm
                   onBack={() => goTo(3)}
                   loading={cardLoading}

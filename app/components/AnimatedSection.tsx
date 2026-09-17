@@ -1,6 +1,33 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 
+// Single shared IntersectionObserver for all AnimatedSection instances
+// (rather than one observer per instance) — reduces memory & observer overhead.
+let sharedObserver: IntersectionObserver | null = null;
+const callbackMap = new WeakMap<Element, () => void>();
+
+function getObserver() {
+  if (typeof window === "undefined") return null;
+  if (!sharedObserver) {
+    sharedObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const cb = callbackMap.get(entry.target);
+            if (cb) {
+              cb();
+              sharedObserver?.unobserve(entry.target);
+              callbackMap.delete(entry.target);
+            }
+          }
+        }
+      },
+      { rootMargin: "0px" }
+    );
+  }
+  return sharedObserver;
+}
+
 export default function AnimatedSection({
   children,
   delay = 0,
@@ -11,23 +38,22 @@ export default function AnimatedSection({
   className?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  // start visible so content renders immediately (no hidden flash on load)
   const [animated, setAnimated] = useState(false);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setAnimated(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin: "0px" }
-    );
+    const observer = getObserver();
+    if (!observer) {
+      setAnimated(true);
+      return;
+    }
+    callbackMap.set(el, () => setAnimated(true));
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => {
+      observer.unobserve(el);
+      callbackMap.delete(el);
+    };
   }, []);
 
   return (

@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { Order, STATUS } from "./types";
 import { IconUser, IconBag, IconCalendar, IconReceipt, IconMoney, IconCheck, IconBack } from "./icons";
 import { Section, InfoRow, FinField } from "./components";
+import RiyalIcon from "../../../components/RiyalIcon";
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -148,9 +149,9 @@ export default function OrderDetailPage() {
             <div key={i} className="bg-gray-50 rounded-lg p-3 flex justify-between items-start gap-2">
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-gray-800 text-sm">{item.name}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{item.price.toFixed(2)} ر.س × {item.quantity}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{item.price.toFixed(2)} <RiyalIcon className="inline w-[10px] h-[10px] align-middle" color="#9ca3af" /> × {item.quantity}</p>
               </div>
-              <span className="font-bold text-gray-900 text-sm shrink-0">{(item.price * item.quantity).toFixed(2)} ر.س</span>
+              <span className="font-bold text-gray-900 text-sm shrink-0">{(item.price * item.quantity).toFixed(2)} <RiyalIcon className="inline w-[11px] h-[11px] align-middle" /></span>
             </div>
           ))}
           <div className="flex justify-between items-center pt-2 border-t border-gray-200 px-1">

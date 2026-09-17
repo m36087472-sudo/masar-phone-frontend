@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { CreditCard, ChevronDown, Calendar, Wallet, CheckCircle2, ArrowRight } from "lucide-react";
+import RiyalIcon from "../../components/RiyalIcon";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -93,9 +94,9 @@ export default function PaymentForm({ total, itemCount, initialData, installment
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4 w-full max-w-lg mx-auto px-2 sm:px-0">
       {/* Back */}
-      <button onClick={onBack} className="flex items-center gap-2 text-sm text-[#0874ED] font-semibold hover:underline">
+      <button onClick={onBack} className="flex items-center gap-2 text-xs sm:text-sm text-[#0874ED] font-semibold hover:underline">
         <ArrowRight size={15} />
         رجوع لبيانات العميل
       </button>
@@ -103,21 +104,21 @@ export default function PaymentForm({ total, itemCount, initialData, installment
       {/* سطر المنتجات */}
       <div className="bg-white rounded-2xl border border-[#E8EDF5] shadow-sm overflow-hidden">
         <div className="divide-y divide-[#F7F9FC]">
-          {items.map(({ product, qty, cartKey }) => {
+          {items.map(({ product, qty, cartKey }, idx) => {
             const price = product.salePrice ?? product.originalPrice ?? product.price;
             const rawImg = product.images?.[0] || product.image;
             const img = rawImg ? resolveImg(rawImg) : undefined;
             return (
-              <div key={cartKey} className="flex items-center gap-3 px-5 py-3.5">
-                <div className="relative w-12 h-12 shrink-0 bg-[#F7F9FC] rounded-xl overflow-hidden border border-[#E8EDF5]">
+              <div key={cartKey ?? idx} className="flex items-center gap-2 sm:gap-3 px-3 sm:px-5 py-3">
+                <div className="relative w-10 h-10 sm:w-12 sm:h-12 shrink-0 bg-[#F7F9FC] rounded-xl overflow-hidden border border-[#E8EDF5]">
                   {img
                     ? <Image src={img} alt={product.name} fill className="object-contain p-1" />
                     : <span className="flex items-center justify-center w-full h-full text-xl">📱</span>
                   }
                 </div>
-                <p className="flex-1 text-sm font-semibold text-[#040D2A] truncate">{product.name}</p>
-                <span className="text-sm font-bold text-[#0874ED] shrink-0">
-                  {fmt(price * qty)} <span className="text-xs font-normal text-[#B0BCCE]">ريال</span>
+                <p className="flex-1 text-xs sm:text-sm font-semibold text-[#040D2A] truncate">{product.name}</p>
+                <span className="text-xs sm:text-sm font-bold text-[#0874ED] shrink-0">
+                  {fmt(price * qty)} <RiyalIcon className="w-[11px] h-[11px] inline align-middle" />
                 </span>
               </div>
             );
@@ -127,14 +128,14 @@ export default function PaymentForm({ total, itemCount, initialData, installment
 
       {/* طريقة الدفع */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-50 flex items-center gap-2">
+        <div className="px-3 sm:px-5 py-3 sm:py-4 border-b border-gray-50 flex items-center gap-2">
           <div className="w-8 h-8 bg-[#0874ED]/10 rounded-lg flex items-center justify-center">
             <CreditCard size={15} className="text-[#0874ED]" />
           </div>
-          <h2 className="text-sm font-bold text-gray-800">طريقة الدفع</h2>
+          <h2 className="text-xs sm:text-sm font-bold text-gray-800">طريقة الدفع</h2>
         </div>
 
-        <div className="px-5 py-5 space-y-5">
+        <div className="px-3 sm:px-5 py-4 sm:py-5 space-y-4 sm:space-y-5">
           {/* Full / Installment toggle */}
           <div className="grid grid-cols-2 gap-3">
             {[
@@ -209,13 +210,13 @@ export default function PaymentForm({ total, itemCount, initialData, installment
                       <Calendar size={12} className="text-[#0874ED]" />
                       عدد أشهر التقسيط
                     </label>
-                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5 sm:gap-2">
                       {MONTHS_OPTIONS.map((m) => (
                         <button
                           key={m}
                           type="button"
                           onClick={() => setMonths(m)}
-                          className={`py-2.5 rounded-xl text-xs font-bold transition-all duration-150 border-2 ${
+                          className={`py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-all duration-150 border-2 ${
                             months === m
                               ? "border-[#0874ED] bg-[#0874ED] text-white shadow-md shadow-[#0874ED]/25"
                               : "border-gray-200 text-gray-600 hover:border-[#0874ED]/40 hover:text-[#0874ED] bg-white"
@@ -234,7 +235,7 @@ export default function PaymentForm({ total, itemCount, initialData, installment
                       <Wallet size={12} className="text-[#0874ED]" />
                       الدفعة الأولى
                     </label>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                       {DOWN_OPTIONS.map((opt) => (
                         <button
                           key={opt.amount}
@@ -260,19 +261,15 @@ export default function PaymentForm({ total, itemCount, initialData, installment
                   </div>
 
                   {/* Monthly summary */}
-                  <div className="bg-gradient-to-r from-[#0874ED]/8 to-[#030D2E]/5 border border-[#0874ED]/15 rounded-2xl p-3 grid grid-cols-2 gap-2">
-                    <div className="bg-white/60 rounded-xl p-2.5 text-center">
+                  <div className="bg-gradient-to-r from-[#0874ED]/8 to-[#030D2E]/5 border border-[#0874ED]/15 rounded-2xl p-2.5 sm:p-3 grid grid-cols-2 gap-2">
+                    <div className="bg-white/60 rounded-xl p-2 sm:p-2.5 text-center">
                       <p className="text-[10px] text-gray-500 font-medium mb-1">القسط الشهري</p>
-                      <p className="text-lg font-extrabold text-[#0874ED] leading-tight">
-                        {fmt(monthly)}
-                      </p>
-                      <p className="text-[10px] text-gray-400">ريال</p>
+                      <p className="text-base sm:text-lg font-extrabold text-[#0874ED] leading-tight">{fmt(monthly)}</p>
+                      <RiyalIcon className="w-[11px] h-[11px] inline align-middle" />
                     </div>
-                    <div className="bg-white/60 rounded-xl p-2.5 text-center">
+                    <div className="bg-white/60 rounded-xl p-2 sm:p-2.5 text-center">
                       <p className="text-[10px] text-gray-500 font-medium mb-1">المدة</p>
-                      <p className="text-lg font-extrabold text-[#040D2A] leading-tight">
-                        {months}
-                      </p>
+                      <p className="text-base sm:text-lg font-extrabold text-[#040D2A] leading-tight">{months}</p>
                       <p className="text-[10px] text-gray-400">شهر</p>
                     </div>
                   </div>
@@ -296,25 +293,43 @@ export default function PaymentForm({ total, itemCount, initialData, installment
                         transition={{ duration: 0.25 }}
                         className="overflow-hidden"
                       >
-                        <div className="rounded-2xl overflow-hidden border border-gray-100 max-h-52 overflow-y-auto">
-                          <table className="w-full text-xs table-fixed">
-                            <thead className="bg-[#030D2E] sticky top-0">
-                              <tr>
-                                <th className="py-2.5 px-2 text-right font-semibold text-white/80 w-8">#</th>
-                                <th className="py-2.5 px-2 text-right font-semibold text-white/80">التاريخ</th>
-                                <th className="py-2.5 px-2 text-right font-semibold text-white/80">المبلغ</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {schedule.map((row, i) => (
-                                <tr key={row.index} className={i % 2 === 0 ? "bg-white" : "bg-gray-50/60"}>
-                                  <td className="py-2 px-2 text-[#0874ED] font-bold">{row.index}</td>
-                                  <td className="py-2 px-2 text-gray-500">{row.date}</td>
-                                  <td className="py-2 px-2 font-bold text-gray-800 whitespace-nowrap">{fmt(row.amount)} ر</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
+                        <div className="rounded-2xl overflow-hidden border border-[#E8EDF5] shadow-sm">
+                          {/* header */}
+                          <div className="bg-[#030D2E] px-4 py-3 grid grid-cols-3 text-[11px] font-bold text-white/70 sticky top-0">
+                            <span>القسط</span>
+                            <span className="text-center">التاريخ</span>
+                            <span className="text-left">المبلغ</span>
+                          </div>
+                          {/* rows */}
+                          <div className="max-h-56 overflow-y-auto divide-y divide-[#F0F4FA]">
+                            {schedule.map((row, i) => (
+                              <div
+                                key={row.index}
+                                className={`grid grid-cols-3 items-center px-4 py-2.5 text-xs transition-colors ${
+                                  i % 2 === 0 ? "bg-white" : "bg-[#F7F9FC]"
+                                }`}
+                              >
+                                <div className="flex items-center gap-1.5">
+                                  <span className="w-5 h-5 rounded-full bg-[#0874ED]/10 text-[#0874ED] font-extrabold text-[10px] flex items-center justify-center shrink-0">
+                                    {row.index}
+                                  </span>
+                                </div>
+                                <span className="text-center text-gray-500 tabular-nums">{row.date}</span>
+                                <span className="text-left font-bold text-[#040D2A] tabular-nums">
+                                  {fmt(row.amount)}
+                                  <RiyalIcon className="w-[9px] h-[9px] inline align-middle ml-0.5" />
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                          {/* footer total */}
+                          <div className="bg-[#F7F9FC] border-t border-[#E8EDF5] px-4 py-2.5 flex items-center justify-between">
+                            <span className="text-[11px] font-semibold text-gray-500">الإجمالي</span>
+                            <span className="text-sm font-extrabold text-[#0874ED] tabular-nums">
+                              {fmt(monthly * months)}
+                              <RiyalIcon className="w-[11px] h-[11px] inline align-middle ml-1" />
+                            </span>
+                          </div>
                         </div>
                       </motion.div>
                     )}
@@ -341,7 +356,7 @@ export default function PaymentForm({ total, itemCount, initialData, installment
 
       <button
         onClick={handleSubmit}
-        className="w-full py-4 bg-gradient-to-l from-[#0874ED] to-[#030D2E] text-white rounded-xl font-extrabold text-base shadow-lg shadow-[#0874ED]/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+        className="w-full py-3.5 sm:py-4 bg-gradient-to-l from-[#0874ED] to-[#030D2E] text-white rounded-xl font-extrabold text-sm sm:text-base shadow-lg shadow-[#0874ED]/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
       >
         استكمال الدفع ←
       </button>

@@ -243,7 +243,7 @@ export default function EditProductPage() {
       {/* Original Price */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          السعر قبل الخصم (ر.س) <span className="text-red-500">*</span>
+          السعر قبل الخصم (ر) <span className="text-red-500">*</span>
         </label>
         <input type="number" value={originalPrice} onChange={(e) => setOriginalPrice(e.target.value)} placeholder="0" min="0" step="0.01" className={inputCls} required />
         <p className="text-xs text-gray-400 mt-1">هذا هو السعر المشطوب عليه</p>
@@ -251,7 +251,7 @@ export default function EditProductPage() {
 
       {/* Sale Price */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">سعر البيع (ر.س)</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">سعر البيع (ر)</label>
         <input type="number" value={salePrice} onChange={(e) => setSalePrice(e.target.value)} placeholder="اتركه فارغاً إن لم يكن هناك خصم" min="0" step="0.01" className={inputCls} />
         <p className="text-xs text-red-400 mt-1">هذا هو السعر المعروض بالأحمر</p>
       </div>

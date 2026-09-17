@@ -2,9 +2,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import RiyalIcon from "../../../components/RiyalIcon";
 
 type Product = {
-  _id: string;
   name: string;
   category: string;
   originalPrice: number;
@@ -179,11 +179,11 @@ export default function ProductsPage() {
                     <td className="px-5 py-3 text-gray-700">
                       {p.salePrice ? (
                         <span>
-                          <span className="text-green-600 font-semibold">{p.salePrice} ر.س</span>
+                          <span className="text-green-600 font-semibold">{p.salePrice} <RiyalIcon className="inline w-[11px] h-[11px] align-middle" color="#16a34a" /></span>
                           <span className="text-gray-400 line-through text-xs mr-1">{p.originalPrice}</span>
                         </span>
                       ) : (
-                        <span>{p.originalPrice} ر.س</span>
+                        <span>{p.originalPrice} <RiyalIcon className="inline w-[11px] h-[11px] align-middle" /></span>
                       )}
                     </td>
                     <td className="px-5 py-3">

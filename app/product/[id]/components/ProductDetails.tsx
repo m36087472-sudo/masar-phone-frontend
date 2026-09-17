@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@iconify/react";
 import type { Product } from "../../../components/products/types";
+import RiyalIcon from "../../../components/RiyalIcon";
 
 const GROUP_META: Record<string, { icon: string; color: string }> = {
   "الشاشة":   { icon: "solar:monitor-smartphone-bold-duotone", color: "#0B43FD" },
@@ -152,7 +153,7 @@ export default function ProductDetails({ description, specGroups, installment }:
               <div>
                 <p className="text-sm font-black text-[#3d6b1a]">احصل عليه الآن بالتقسيط</p>
                 {installment.downPayment && (
-                  <p className="text-xs text-[#6DBE00] font-bold mt-0.5">مقدم {fmt(installment.downPayment)} ر.س فقط</p>
+                  <p className="text-xs text-[#6DBE00] font-bold mt-0.5">مقدم {fmt(installment.downPayment)} <RiyalIcon className="inline w-[11px] h-[11px] align-middle" color="#6DBE00" /> فقط</p>
                 )}
                 {installment.note && <p className="text-[11px] text-gray-500 mt-0.5">{installment.note}</p>}
               </div>

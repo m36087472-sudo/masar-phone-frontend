@@ -85,23 +85,6 @@ export default function ShopByModel() {
 
         <div className="swiper-models-dots flex justify-center gap-2 mt-8" />
       </div>
-
-      <style>{`
-        .swiper-models-bullet {
-          display: inline-block;
-          width: 8px; height: 8px;
-          border-radius: 9999px;
-          background: #0B43FD;
-          opacity: 0.2;
-          cursor: pointer;
-          transition: all 0.3s ease;
-        }
-        .swiper-models-bullet-active {
-          opacity: 1;
-          width: 22px;
-          background: #0B43FD;
-        }
-      `}</style>
     </section>
   );
 }

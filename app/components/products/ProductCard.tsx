@@ -8,7 +8,9 @@ import { ShoppingCart, CheckCircle2 } from "lucide-react";
 import { Icon } from "@iconify/react";
 import type { Product, ProductVariant } from "./types";
 import { useCartStore } from "../../store/cartStore";
+import RiyalIcon from "../RiyalIcon";
 
+// Module-level constants — not recreated on every render
 const fmt = (n: number) => n.toLocaleString("en-US");
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const resolveImg = (src: string) => {
@@ -142,7 +144,7 @@ function ProductCard({ product, priority = false }: { product: Product; priority
         {/* Price */}
         <div className="flex items-baseline gap-1 pt-1 border-t border-gray-100">
           <span className="text-[14px] sm:text-[20px] font-black text-[#0B43FD] leading-none">{fmt(displayPrice)}</span>
-          <span className="text-[9px] sm:text-[10px] font-bold text-[#0B43FD]/60">ر.س</span>
+          <RiyalIcon className="w-[13px] h-[13px] sm:w-[15px] sm:h-[15px] inline align-middle" />
           {hasDiscount && <span className="text-[9px] sm:text-[10px] text-gray-400 line-through">{fmt(originalPrice)}</span>}
         </div>
 
@@ -157,7 +159,7 @@ function ProductCard({ product, priority = false }: { product: Product; priority
               <span className="text-[11px] sm:text-[12px] font-black text-[#0B43FD] leading-none">
                 {fmt(Math.ceil((displayPrice - 1000) / 24))}
               </span>
-              <span className="text-[7px] sm:text-[8px] font-bold text-[#0B43FD]/70">ر.س</span>
+              <RiyalIcon className="w-[10px] h-[10px] sm:w-[11px] sm:h-[11px] inline align-middle" />
               <span className="text-[7px] sm:text-[8px] font-semibold text-gray-400">× 24 شهر</span>
             </div>
           </div>

@@ -1,9 +1,9 @@
 import { ProductGrid } from "./components/products";
-import CustomerReviews from "./components/CustomerReviews";
 import HeroSection from "./components/HeroSection";
-import ShopByModel from "./components/shop-by-model/ShopByModel";
 import AnimatedSection from "./components/AnimatedSection";
 import HomeBackground from "./components/HomeBackground";
+import DynamicShopByModel from "./components/DynamicShopByModel";
+import DynamicCustomerReviews from "./components/DynamicCustomerReviews";
 import {
   getCachedProducts,
   getCachedBanners,
@@ -30,14 +30,18 @@ export default async function Home() {
       url: b.url.startsWith("http") ? b.url : `${BACKEND}${b.url}`,
     }));
 
-  const categories = [
-    ...new Set(
-      (products as { category?: string }[]).map((p) => p.category).filter(Boolean)
-    ),
-  ] as string[];
+  // Single-pass unique-category extraction — avoids a second .map() + spread
+  const seenCats = new Set<string>();
+  for (const p of products as { category?: string }[]) {
+    if (p.category) seenCats.add(p.category);
+  }
+  const categories = Array.from(seenCats);
 
   const bannerMap: Record<string, string[]> = categories.length
-    ? await getCachedCategoryBanners(categories.join(","))
+    ? await getCachedCategoryBanners(
+        // Sort to guarantee a stable cache key regardless of DB return order
+        [...categories].sort().join(",")
+      )
     : {};
 
   const siteName = "مسار الهاتف المعتمد";
@@ -78,13 +82,13 @@ export default async function Home() {
         <HomeBackground />
         <HeroSection banners={heroBanners} />
         <AnimatedSection delay={0.1}>
-          <ShopByModel />
+          <DynamicShopByModel />
         </AnimatedSection>
         <AnimatedSection delay={0.2}>
           <ProductGrid products={products} homeConfig={homeConfig} bannerMap={bannerMap} />
         </AnimatedSection>
         <AnimatedSection delay={0.1}>
-          <CustomerReviews initialReviews={reviews} />
+          <DynamicCustomerReviews initialReviews={reviews} />
         </AnimatedSection>
       </main>
     </>

@@ -4,6 +4,7 @@ import { useState, useMemo, useRef } from "react";
 import { User, MapPin, CreditCard, ChevronDown, Calendar, Wallet, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { CustomerInfo } from "../../store/cartStore";
+import RiyalIcon from "../../components/RiyalIcon";
 
 const fmt = (n: number) => n.toLocaleString("en-US");
 
@@ -25,10 +26,10 @@ export default function CustomerForm({ total, itemCount, initialData, installmen
   const MONTHS_OPTIONS = Array.from({ length: Math.floor(maxMonths / 2) }, (_, i) => (i + 1) * 2);
   const minDown = 500 * itemCount;
   const DOWN_OPTIONS = [
-    { label: `${fmt(minDown)} ر.س`, value: 0, sub: "الحد الأدنى" },
-    { label: `${fmt(minDown + 500)} ر.س`, value: 500, sub: "+500 ر.س" },
-    { label: `${fmt(minDown + 1000)} ر.س`, value: 1000, sub: "+1000 ر.س" },
-    { label: `${fmt(total)} ر.س`, value: total - minDown, sub: "دفع كامل" },
+    { label: fmt(minDown), value: 0, sub: "الحد الأدنى" },
+    { label: fmt(minDown + 500), value: 500, sub: "+500" },
+    { label: fmt(minDown + 1000), value: 1000, sub: "+1000" },
+    { label: fmt(total), value: total - minDown, sub: "دفع كامل" },
   ];
 
   const [name, setName] = useState(initialData?.name ?? "");
@@ -93,16 +94,16 @@ export default function CustomerForm({ total, itemCount, initialData, installmen
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4 w-full max-w-lg mx-auto px-2 sm:px-0">
       {/* ── Customer Info ── */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-50 flex items-center gap-2">
+        <div className="px-3 sm:px-5 py-3 sm:py-4 border-b border-gray-50 flex items-center gap-2">
           <div className="w-8 h-8 bg-[#1a6b7d]/10 rounded-lg flex items-center justify-center">
             <User size={15} className="text-[#1a6b7d]" />
           </div>
-          <h2 className="text-sm font-bold text-gray-800">معلومات العميل</h2>
+          <h2 className="text-xs sm:text-sm font-bold text-gray-800">معلومات العميل</h2>
         </div>
-        <div className="px-5 py-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="px-3 sm:px-5 py-4 sm:py-5 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div ref={nameRef} className="space-y-1.5">
             <label className="text-xs font-semibold text-gray-600">الاسم كاملاً <span className="text-red-400">*</span></label>
             <input
@@ -167,13 +168,13 @@ export default function CustomerForm({ total, itemCount, initialData, installmen
 
       {/* ── Address ── */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-50 flex items-center gap-2">
+        <div className="px-3 sm:px-5 py-3 sm:py-4 border-b border-gray-50 flex items-center gap-2">
           <div className="w-8 h-8 bg-[#1a6b7d]/10 rounded-lg flex items-center justify-center">
             <MapPin size={15} className="text-[#1a6b7d]" />
           </div>
-          <h2 className="text-sm font-bold text-gray-800">عنوان التوصيل</h2>
+          <h2 className="text-xs sm:text-sm font-bold text-gray-800">عنوان التوصيل</h2>
         </div>
-        <div ref={addressRef} className="px-5 py-5 space-y-1.5">
+        <div ref={addressRef} className="px-3 sm:px-5 py-4 sm:py-5 space-y-1.5">
           <label className="text-xs font-semibold text-gray-600">العنوان بالتفصيل <span className="text-red-400">*</span></label>
           <input
             value={address}
@@ -193,13 +194,13 @@ export default function CustomerForm({ total, itemCount, initialData, installmen
 
       {/* ── Payment Method ── */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-50 flex items-center gap-2">
+        <div className="px-3 sm:px-5 py-3 sm:py-4 border-b border-gray-50 flex items-center gap-2">
           <div className="w-8 h-8 bg-[#1a6b7d]/10 rounded-lg flex items-center justify-center">
             <CreditCard size={15} className="text-[#1a6b7d]" />
           </div>
-          <h2 className="text-sm font-bold text-gray-800">طريقة الدفع</h2>
+          <h2 className="text-xs sm:text-sm font-bold text-gray-800">طريقة الدفع</h2>
         </div>
-        <div className="px-5 py-5 space-y-5">
+        <div className="px-3 sm:px-5 py-4 sm:py-5 space-y-4 sm:space-y-5">
 
           {/* Full / Installment toggle */}
           <div className="grid grid-cols-2 gap-3">
@@ -214,7 +215,7 @@ export default function CustomerForm({ total, itemCount, initialData, installmen
                   key={opt.value}
                   type="button"
                   onClick={() => setInstallmentType(opt.value as "full" | "installment")}
-                  className={`relative p-4 rounded-2xl border-2 text-right transition-all duration-200 overflow-hidden ${
+                  className={`relative p-3 sm:p-4 rounded-2xl border-2 text-right transition-all duration-200 overflow-hidden ${
                     active
                       ? "border-[#1a6b7d] bg-gradient-to-br from-[#1a6b7d]/8 to-[#1a6b7d]/3 shadow-md"
                       : "border-gray-200 hover:border-gray-300 bg-white"
@@ -225,11 +226,11 @@ export default function CustomerForm({ total, itemCount, initialData, installmen
                       <CheckCircle2 size={14} className="text-[#1a6b7d]" />
                     </span>
                   )}
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-2 ${active ? "bg-[#1a6b7d] text-white" : "bg-gray-100 text-gray-500"}`}>
-                    <Icon size={16} />
+                  <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center mb-1.5 sm:mb-2 ${active ? "bg-[#1a6b7d] text-white" : "bg-gray-100 text-gray-500"}`}>
+                    <Icon size={15} />
                   </div>
-                  <p className={`text-sm font-bold leading-tight ${active ? "text-[#1a6b7d]" : "text-gray-700"}`}>{opt.label}</p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">{opt.desc}</p>
+                  <p className={`text-xs sm:text-sm font-bold leading-tight ${active ? "text-[#1a6b7d]" : "text-gray-700"}`}>{opt.label}</p>
+                  <p className="text-[10px] sm:text-[11px] text-gray-400 mt-0.5">{opt.desc}</p>
                 </button>
               );
             })}
@@ -253,13 +254,13 @@ export default function CustomerForm({ total, itemCount, initialData, installmen
                       <Calendar size={12} className="text-[#1a6b7d]" />
                       عدد أشهر التقسيط
                     </label>
-                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5 sm:gap-2">
                       {MONTHS_OPTIONS.map((m) => (
                         <button
                           key={m}
                           type="button"
                           onClick={() => setMonths(m)}
-                          className={`py-2.5 rounded-xl text-xs font-bold transition-all duration-150 border-2 ${
+                          className={`py-2 sm:py-2.5 rounded-xl text-xs font-bold transition-all duration-150 border-2 ${
                             months === m
                               ? "border-[#1a6b7d] bg-[#1a6b7d] text-white shadow-md shadow-[#1a6b7d]/25"
                               : "border-gray-200 text-gray-600 hover:border-[#1a6b7d]/40 hover:text-[#1a6b7d] bg-white"
@@ -278,13 +279,13 @@ export default function CustomerForm({ total, itemCount, initialData, installmen
                       <Wallet size={12} className="text-[#1a6b7d]" />
                       الدفعة الأولى
                     </label>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
                       {DOWN_OPTIONS.map((opt) => (
                         <button
                           key={opt.value}
                           type="button"
                           onClick={() => setDownExtra(opt.value)}
-                          className={`relative py-3 px-3 rounded-xl border-2 text-right transition-all duration-150 ${
+                          className={`relative py-2.5 sm:py-3 px-2.5 sm:px-3 rounded-xl border-2 text-right transition-all duration-150 ${
                             downExtra === opt.value
                               ? "border-[#7CC043] bg-[#7CC043]/8 shadow-sm"
                               : "border-gray-200 hover:border-[#7CC043]/40 bg-white"
@@ -295,8 +296,8 @@ export default function CustomerForm({ total, itemCount, initialData, installmen
                               <CheckCircle2 size={12} className="text-[#7CC043]" />
                             </span>
                           )}
-                          <p className={`text-sm font-extrabold ${downExtra === opt.value ? "text-[#3b6a00]" : "text-gray-700"}`}>
-                            {opt.label}
+                          <p className={`text-xs sm:text-sm font-extrabold ${downExtra === opt.value ? "text-[#3b6a00]" : "text-gray-700"}`}>
+                            {opt.label} <RiyalIcon className="inline w-[11px] h-[11px] align-middle" color={downExtra === opt.value ? "#3b6a00" : "#0874ED"} />
                           </p>
                           <p className="text-[10px] text-gray-400 mt-0.5">{opt.sub}</p>
                         </button>
@@ -305,17 +306,17 @@ export default function CustomerForm({ total, itemCount, initialData, installmen
                   </div>
 
                   {/* Monthly summary pill */}
-                  <div className="bg-gradient-to-r from-[#1a6b7d]/8 to-[#7CC043]/8 border border-[#1a6b7d]/15 rounded-2xl p-4 flex items-center justify-between">
+                  <div className="bg-gradient-to-r from-[#1a6b7d]/8 to-[#7CC043]/8 border border-[#1a6b7d]/15 rounded-2xl p-3 sm:p-4 flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-gray-500 font-medium">القسط الشهري</p>
-                      <p className="text-2xl font-extrabold text-[#1a6b7d] mt-0.5">
-                        {fmt(monthly)} <span className="text-sm font-semibold text-gray-400">ر.س</span>
+                      <p className="text-[10px] sm:text-xs text-gray-500 font-medium">القسط الشهري</p>
+                      <p className="text-xl sm:text-2xl font-extrabold text-[#1a6b7d] mt-0.5">
+                        {fmt(monthly)} <RiyalIcon className="inline w-[11px] h-[11px] align-middle text-gray-400" color="#9ca3af" />
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-gray-500 font-medium">لمدة</p>
-                      <p className="text-lg font-extrabold text-[#7CC043]">
-                        {months} <span className="text-sm font-semibold text-gray-400">شهر</span>
+                      <p className="text-[10px] sm:text-xs text-gray-500 font-medium">لمدة</p>
+                      <p className="text-base sm:text-lg font-extrabold text-[#7CC043]">
+                        {months} <span className="text-xs sm:text-sm font-semibold text-gray-400">شهر</span>
                       </p>
                     </div>
                   </div>
@@ -339,25 +340,40 @@ export default function CustomerForm({ total, itemCount, initialData, installmen
                         transition={{ duration: 0.25 }}
                         className="overflow-hidden"
                       >
-                        <div className="rounded-2xl overflow-hidden border border-gray-100 max-h-52 overflow-y-auto">
-                          <table className="w-full text-xs">
-                            <thead className="bg-[#1a6b7d] sticky top-0">
-                              <tr>
-                                <th className="py-2.5 px-3 text-right font-semibold text-white/80">#</th>
-                                <th className="py-2.5 px-3 text-right font-semibold text-white/80">التاريخ</th>
-                                <th className="py-2.5 px-3 text-right font-semibold text-white/80">المبلغ</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {schedule.map((row, i) => (
-                                <tr key={row.index} className={i % 2 === 0 ? "bg-white" : "bg-gray-50/60"}>
-                                  <td className="py-2 px-3 text-[#1a6b7d] font-bold">{row.index}</td>
-                                  <td className="py-2 px-3 text-gray-500">{row.date}</td>
-                                  <td className="py-2 px-3 font-bold text-gray-800">{fmt(row.amount)} ر.س</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
+                        <div className="rounded-2xl overflow-hidden border border-[#E8EDF5] shadow-sm">
+                          <div className="bg-[#1a6b7d] px-4 py-3 grid grid-cols-3 text-[11px] font-bold text-white/70 sticky top-0">
+                            <span>القسط</span>
+                            <span className="text-center">التاريخ</span>
+                            <span className="text-left">المبلغ</span>
+                          </div>
+                          <div className="max-h-56 overflow-y-auto divide-y divide-[#F0F4FA]">
+                            {schedule.map((row, i) => (
+                              <div
+                                key={row.index}
+                                className={`grid grid-cols-3 items-center px-4 py-2.5 text-xs transition-colors ${
+                                  i % 2 === 0 ? "bg-white" : "bg-[#F7F9FC]"
+                                }`}
+                              >
+                                <div className="flex items-center gap-1.5">
+                                  <span className="w-5 h-5 rounded-full bg-[#1a6b7d]/10 text-[#1a6b7d] font-extrabold text-[10px] flex items-center justify-center shrink-0">
+                                    {row.index}
+                                  </span>
+                                </div>
+                                <span className="text-center text-gray-500 tabular-nums">{row.date}</span>
+                                <span className="text-left font-bold text-[#040D2A] tabular-nums">
+                                  {fmt(row.amount)}
+                                  <span className="text-[10px] font-normal text-gray-400 mr-0.5">ر</span>
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="bg-[#F7F9FC] border-t border-[#E8EDF5] px-4 py-2.5 flex items-center justify-between">
+                            <span className="text-[11px] font-semibold text-gray-500">الإجمالي</span>
+                            <span className="text-sm font-extrabold text-[#1a6b7d] tabular-nums">
+                              {fmt(monthly * months)}
+                              <RiyalIcon className="inline w-[10px] h-[10px] align-middle mr-1" color="#9ca3af" />
+                            </span>
+                          </div>
                         </div>
                       </motion.div>
                     )}
@@ -371,7 +387,7 @@ export default function CustomerForm({ total, itemCount, initialData, installmen
 
       <button
         onClick={handleSubmit}
-        className="w-full py-4 bg-gradient-to-bl from-[#1a6b7d] to-[#155e6f] text-white rounded-xl font-extrabold text-base shadow-lg shadow-[#1a6b7d]/25 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+        className="w-full py-3.5 sm:py-4 bg-gradient-to-bl from-[#1a6b7d] to-[#155e6f] text-white rounded-xl font-extrabold text-sm sm:text-base shadow-lg shadow-[#1a6b7d]/25 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
       >
         متابعة إلى الدفع ←
       </button>

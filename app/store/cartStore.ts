@@ -54,7 +54,7 @@ export const useCartStore = create<CartState>()(
       pendingDiscountCode: null,
       addItem: (product) =>
         set((s) => {
-          const cartKey = `${product._id}-${product.color ?? ""}-${product.storage ?? ""}`;
+          const cartKey = `${product._id || product.name}-${product.color ?? ""}-${product.storage ?? ""}`;
           const existing = s.items.find((i) => i.cartKey === cartKey);
           if (existing)
             return {

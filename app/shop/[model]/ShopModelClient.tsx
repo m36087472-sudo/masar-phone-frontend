@@ -21,6 +21,17 @@ interface Props {
   hero?: HeroSlide[];
 }
 
+/** Build the pagination dot sequence once per (totalPages, page) combo */
+function buildPageDots(totalPages: number, page: number): (number | "...")[] {
+  return Array.from({ length: totalPages }, (_, i) => i + 1)
+    .filter((n) => n === 1 || n === totalPages || Math.abs(n - page) <= 1)
+    .reduce<(number | "...")[]>((acc, n, idx, arr) => {
+      if (idx > 0 && n - (arr[idx - 1] as number) > 1) acc.push("...");
+      acc.push(n);
+      return acc;
+    }, []);
+}
+
 export default function ShopModelClient({ products, modelName, hero = [] }: Props) {
   const [slideIdx, setSlideIdx] = useState(0);
   const slides = hero.length > 0 ? hero.filter((s) => !!s.image) : null;
@@ -76,6 +87,9 @@ export default function ShopModelClient({ products, modelName, hero = [] }: Prop
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
+  // Memoize dot sequence — only recomputes when page or totalPages changes
+  const pageDots = useMemo(() => buildPageDots(totalPages, page), [totalPages, page]);
+
   return (
     <main dir="rtl" className="min-h-screen bg-[#f5f7ff]">
 
@@ -97,7 +111,7 @@ export default function ShopModelClient({ products, modelName, hero = [] }: Prop
                 fill
                 priority={i === 0}
                 loading={i === 0 ? "eager" : "lazy"}
-                className="object-cover object-center scale-105"
+                className="object-cover object-center"
                 sizes="100vw"
               />
             </div>
@@ -234,14 +248,7 @@ export default function ShopModelClient({ products, modelName, hero = [] }: Prop
               <ChevronRight size={16} />
             </button>
 
-            {Array.from({ length: totalPages }, (_, i) => i + 1)
-              .filter((n) => n === 1 || n === totalPages || Math.abs(n - page) <= 1)
-              .reduce<(number | "...")[]>((acc, n, idx, arr) => {
-                if (idx > 0 && n - (arr[idx - 1] as number) > 1) acc.push("...");
-                acc.push(n);
-                return acc;
-              }, [])
-              .map((n, i) =>
+            {pageDots.map((n, i) =>
                 n === "..." ? (
                   <span key={`dots-${i}`} className="text-gray-400 px-1">…</span>
                 ) : (

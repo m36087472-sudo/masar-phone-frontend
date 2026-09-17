@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Icon } from "@iconify/react";
+import RiyalIcon from "../../../components/RiyalIcon";
 
 const fmt = (n: number) => n.toLocaleString("en-US");
 
@@ -39,7 +40,7 @@ export default function InstallmentCalculator({ price }: Props) {
         <div className="flex items-center gap-2">
           {!open && (
             <span className="text-[10px] sm:text-[11px] font-semibold text-gray-400">
-              من {fmt(Math.ceil((price - 1000) / 24))} ر.س / شهر
+            من {fmt(Math.ceil((price - 1000) / 24))} <RiyalIcon className="inline w-[10px] h-[10px] align-middle" color="#9ca3af" /> / شهر
             </span>
           )}
           <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.22 }}>
@@ -79,7 +80,7 @@ export default function InstallmentCalculator({ price }: Props) {
                       >
                         {fmt(dp)}
                         <span className={`block text-[9px] font-medium mt-0.5 ${active ? "text-white/70" : "text-gray-400"}`}>
-                          ر.س
+                          <RiyalIcon className="inline w-[9px] h-[9px] align-middle" color={active ? "rgba(255,255,255,0.7)" : "#9ca3af"} />
                         </span>
                       </button>
                     );
@@ -128,7 +129,7 @@ export default function InstallmentCalculator({ price }: Props) {
                         <span className="text-[26px] sm:text-[32px] font-black text-white leading-none">
                           {fmt(monthly)}
                         </span>
-                        <span className="text-[11px] sm:text-[13px] font-semibold text-white/70">ر.س</span>
+                        <span className="text-[11px] sm:text-[13px] font-semibold text-white/70"><RiyalIcon className="inline w-[11px] h-[11px] align-middle" color="rgba(255,255,255,0.7)" /></span>
                         <span className="text-[10px] text-white/50">× {months} شهر</span>
                       </div>
                     </div>
@@ -147,7 +148,7 @@ export default function InstallmentCalculator({ price }: Props) {
                       <div key={row.label} className="flex flex-col gap-0.5">
                         <span className="text-[10px] sm:text-[11px] text-white/50 font-medium">{row.label}</span>
                         <span className="text-[13px] sm:text-[15px] font-black text-white leading-tight">{row.value}</span>
-                        <span className="text-[9px] sm:text-[10px] text-white/40">ر.س</span>
+                        <span className="text-[9px] sm:text-[10px] text-white/40"><RiyalIcon className="inline w-[9px] h-[9px] align-middle" color="rgba(255,255,255,0.4)" /></span>
                       </div>
                     ))}
                   </div>

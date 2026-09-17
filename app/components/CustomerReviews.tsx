@@ -16,7 +16,8 @@ interface Review {
 }
 
 export default function CustomerReviews({ initialReviews = [] }: { initialReviews?: Review[] }) {
-  const [reviews] = useState<Review[]>(initialReviews);
+  // Use the prop directly — no need to copy it into state
+  const reviews = initialReviews;
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: "", comment: "", rating: 5 });
   const [submitting, setSubmitting] = useState(false);
@@ -38,6 +39,13 @@ export default function CustomerReviews({ initialReviews = [] }: { initialReview
       { threshold: 0.1 }
     );
     observer.observe(el);
+    // Also pause when the browser tab is hidden to save CPU
+    const onVisibilityChange = () => {
+      if (!swiperRef.current) return;
+      if (document.hidden) swiperRef.current.autoplay.stop();
+      else swiperRef.current.autoplay.start();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
   };
 
   async function handleSubmit(e: React.FormEvent) {

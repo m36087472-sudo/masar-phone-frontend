@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import RiyalIcon from "../../../components/RiyalIcon";
 
 type OrderItem = { productId: string; name: string; price: number; quantity: number };
 
@@ -199,9 +200,9 @@ export default function OrdersPage() {
                     <td className="px-4 py-3 text-gray-600">
                       {o.installmentType === "installment" ? `تقسيط ${o.months} شهر` : "كامل"}
                     </td>
-                    <td className="px-4 py-3 font-semibold text-gray-800">{o.total} ر.س</td>
+                    <td className="px-4 py-3 font-semibold text-gray-800">{o.total} <RiyalIcon className="inline w-[11px] h-[11px] align-middle" /></td>
                     <td className="px-4 py-3 text-gray-600">
-                      {o.installmentType === "installment" ? `${o.downPayment} ر.س` : "—"}
+                      {o.installmentType === "installment" ? <>{o.downPayment} <RiyalIcon className="inline w-[11px] h-[11px] align-middle" /></> : "—"}
                     </td>
                     <td className="px-4 py-3 text-gray-500">{new Date(o.createdAt).toLocaleDateString("ar-EG")}</td>
                     <td className="px-4 py-3">

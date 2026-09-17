@@ -50,9 +50,8 @@ function TimeBox({ value, label }: { value: number; label: string }) {
         style={{
           width: "clamp(52px, 14vw, 96px)",
           height: "clamp(52px, 14vw, 96px)",
-          background: "rgba(255,255,255,0.12)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
+          // Solid semi-transparent bg replaces backdrop-filter:blur — same look, zero GPU compositing cost
+          background: "rgba(255,255,255,0.13)",
           border: "1px solid rgba(255,255,255,0.22)",
           boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
         }}
@@ -82,9 +81,25 @@ export default function IPhone18ComingSoon({ modelName, slides }: { modelName: s
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    timerRef.current = setInterval(() => setCurrent((i) => (i + 1) % SLIDES.length), 4500);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, []);
+    const start = () => {
+      if (timerRef.current) return;
+      timerRef.current = setInterval(() => setCurrent((i) => (i + 1) % SLIDES.length), 4500);
+    };
+    const stop = () => {
+      if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+    };
+
+    start();
+
+    // Pause animation when the browser tab is not visible — saves 1 setInterval + React state update/sec
+    const onVisibility = () => document.hidden ? stop() : start();
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [SLIDES.length]);
 
   return (
     <main dir="rtl" className="relative flex flex-col items-center justify-center overflow-hidden">
@@ -222,9 +237,7 @@ export default function IPhone18ComingSoon({ modelName, slides }: { modelName: s
               className="flex-1 rounded-2xl text-right"
               style={{
                 padding: "clamp(14px, 3vw, 22px)",
-                background: "rgba(255,255,255,0.08)",
-                backdropFilter: "blur(20px)",
-                WebkitBackdropFilter: "blur(20px)",
+                background: "rgba(255,255,255,0.09)",
                 border: "1px solid rgba(255,255,255,0.14)",
               }}
             >

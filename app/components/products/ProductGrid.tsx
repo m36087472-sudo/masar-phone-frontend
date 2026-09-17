@@ -7,6 +7,7 @@ import CategoryBanner from "../banner/CategoryBanner";
 
 const LIMIT = 4;
 
+// These are module-level constants — they are created once, not on every render.
 const normalize = (s: string) =>
   s.trim()
     .replace(/[آأإ]/g, "ا")
@@ -74,7 +75,7 @@ const CategoryRow = memo(function CategoryRow({ category, items, isFirst }: { ca
       <div className="border-t-2 border-dashed border-[#0B43FD]/20 mb-4 sm:mb-6" />
       <div className="flex sm:grid sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5 overflow-x-auto pb-2 sm:overflow-visible sm:pb-0 snap-x snap-mandatory scrollbar-hide">
         {visible.map((p, i) => (
-          <div key={p._id} className="min-w-[52vw] max-w-[52vw] sm:min-w-0 sm:max-w-none snap-start">
+          <div key={p._id} className="min-w-[44vw] max-w-[44vw] sm:min-w-0 sm:max-w-none snap-start">
             <ProductCard product={p} priority={isFirst && i === 0} />
           </div>
         ))}
@@ -82,6 +83,22 @@ const CategoryRow = memo(function CategoryRow({ category, items, isFirst }: { ca
     </div>
   );
 });
+
+// Module-level helpers — created once, not inside useMemo
+const parseStorage = (s?: string): number => {
+  if (!s) return 0;
+  const n = parseFloat(s);
+  if (s.includes("تيرا") || s.toLowerCase().includes("tb")) return n * 1024;
+  return n || 0;
+};
+
+const colorOrder = (c?: string): number => {
+  if (!c) return 99;
+  if (c.includes("برتقال") || c.toLowerCase().includes("orange")) return 0;
+  if (c.includes("سيلفر") || c.toLowerCase().includes("silver")) return 1;
+  if (c.includes("ازرق") || c.includes("أزرق") || c.toLowerCase().includes("blue")) return 2;
+  return 3;
+};
 
 type HomeSettings = { category: string; subCategory: string; showInHome: boolean; order: number };
 type HomeConfig = { settings: HomeSettings[]; max: number };
@@ -101,19 +118,6 @@ export default function ProductGrid({
       const cat = p.category || "أخرى";
       (map[cat] ??= []).push(p);
     });
-    const parseStorage = (s?: string) => {
-      if (!s) return 0;
-      const n = parseFloat(s);
-      if (s.includes("تيرا") || s.toLowerCase().includes("tb")) return n * 1024;
-      return n || 0;
-    };
-    const colorOrder = (c?: string) => {
-      if (!c) return 99;
-      if (c.includes("برتقال") || c.toLowerCase().includes("orange")) return 0;
-      if (c.includes("سيلفر") || c.toLowerCase().includes("silver")) return 1;
-      if (c.includes("ازرق") || c.includes("أزرق") || c.toLowerCase().includes("blue")) return 2;
-      return 3;
-    };
     for (const cat of Object.keys(map)) {
       map[cat].sort((a, b) => {
         const storageDiff = parseStorage(a.storage) - parseStorage(b.storage);

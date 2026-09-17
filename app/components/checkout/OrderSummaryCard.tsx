@@ -1,4 +1,5 @@
 import { ShoppingCart, Truck, CreditCard, Wallet, CalendarDays, BadgePercent, Banknote } from "lucide-react";
+import RiyalIcon from "../RiyalIcon";
 
 const fmt = (n: number) => n.toLocaleString("en-US");
 
@@ -42,7 +43,7 @@ export default function OrderSummaryCard({
           <span className="text-xs text-gray-500 flex items-center gap-1.5">
             <ShoppingCart size={12} className="text-[#1a6b7d]" />مجموع السلة
           </span>
-          <span className="text-xs font-bold text-gray-800">{fmt(total)} ر.س</span>
+          <span className="text-xs font-bold text-gray-800">{fmt(total)} <RiyalIcon className="inline w-[11px] h-[11px] align-middle" /></span>
         </div>
 
         <div className="flex justify-between items-center py-2">
@@ -60,14 +61,14 @@ export default function OrderSummaryCard({
               <span className="text-xs text-gray-500 flex items-center gap-1.5">
                 <Wallet size={12} className="text-[#1a6b7d]" />الدفعة الأولى
               </span>
-              <span className="text-xs font-bold text-gray-800">{fmt(downPayment!)} ر.س</span>
+              <span className="text-xs font-bold text-gray-800">{fmt(downPayment!)} <RiyalIcon className="inline w-[11px] h-[11px] align-middle" /></span>
             </div>
             <div className="flex justify-between items-center py-2">
               <span className="text-xs text-gray-500 flex items-center gap-1.5">
                 <CalendarDays size={12} className="text-[#1a6b7d]" />آلية التقسيط
               </span>
               <span className="text-[11px] font-semibold text-[#1a6b7d] bg-[#1a6b7d]/8 px-2 py-0.5 rounded-full">
-                {months} شهر × {fmt(monthlyPayment)} ر.س
+                {months} شهر × {fmt(monthlyPayment)} <RiyalIcon className="inline w-[10px] h-[10px] align-middle" />
               </span>
             </div>
           </>
@@ -97,7 +98,7 @@ export default function OrderSummaryCard({
           </div>
           <div className="text-left">
             <span className="text-xl font-black text-white">{fmt(dueNow)}</span>
-            <span className="text-xs text-white/60 mr-1">ر.س</span>
+            <RiyalIcon className="inline w-[13px] h-[13px] align-middle mr-1" color="rgba(255,255,255,0.6)" />
           </div>
         </div>
       </div>

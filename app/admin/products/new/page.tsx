@@ -257,10 +257,10 @@ export default function NewProductPage() {
           <input type="text" value={brief} onChange={(e) => setBrief(e.target.value)} placeholder="جملة قصيرة تظهر تحت الاسم" className={inputCls} />
         </Field>
         <div className="grid grid-cols-2 gap-4">
-          <Field label="السعر الأصلي (ر.س)" required hint="السعر المشطوب عليه">
+          <Field label="السعر الأصلي (ر)" required hint="السعر المشطوب عليه">
             <input type="number" value={originalPrice} onChange={(e) => setOriginalPrice(e.target.value)} placeholder="0" min="0" step="0.01" className={inputCls} required />
           </Field>
-          <Field label="سعر البيع (ر.س)" hint="اتركه فارغاً إن لم يكن هناك خصم">
+          <Field label="سعر البيع (ر)" hint="اتركه فارغاً إن لم يكن هناك خصم">
             <input type="number" value={salePrice} onChange={(e) => setSalePrice(e.target.value)} placeholder="اختياري" min="0" step="0.01" className={inputCls} />
           </Field>
         </div>
@@ -346,7 +346,7 @@ export default function NewProductPage() {
         </Field>
         {installmentAvailable && (
           <div className="grid grid-cols-2 gap-4 mt-3">
-            <Field label="الدفعة الأولى (ر.س)">
+            <Field label="الدفعة الأولى (ر)">
               <input type="number" value={installmentDown} onChange={(e) => setInstallmentDown(e.target.value)} placeholder="0" min="0" step="0.01" className={inputCls} />
             </Field>
             <Field label="عدد الأشهر">

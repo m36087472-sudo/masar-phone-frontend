@@ -4,7 +4,38 @@ import ShopModelClient from "./ShopModelClient";
 import IPhone18ComingSoon from "./IPhone18ComingSoon";
 import type { Product } from "../../components/products/types";
 
-export const revalidate = 3600; // يعيد بناء الصفحة كل ساعة
+export const revalidate = 3600;
+
+// ─── Module-level constants (created once, not per-request) ───────────────────
+
+// Pre-compiled regex — avoids re-compiling inside the sort comparator N² times
+const STORAGE_RE = /(\d+)\s*(GB|TB|جيجابايت|تيرابايت)/i;
+const STORAGE_ORDER = ["64GB", "128GB", "256GB", "512GB", "1TB", "2TB"];
+
+/** Extract a canonical storage string from a product — result is cached by caller */
+function getStorageKey(p: Product): string {
+  const src = p.storage ?? p.name ?? "";
+  const m = STORAGE_RE.exec(src);
+  if (!m) return "";
+  const unit = m[2].replace(/جيجابايت/i, "GB").replace(/تيرابايت/i, "TB").toUpperCase();
+  return `${m[1]}${unit}`;
+}
+
+/**
+ * Sort products by storage capacity in O(n log n) with O(n) pre-computation.
+ * The original code called getStorage() twice per comparison = O(n² × regex).
+ */
+function sortByStorage(arr: Product[]): Product[] {
+  // Pre-compute storage index for each product — O(n)
+  const indices = new Map<string, number>(
+    arr.map((p) => [p._id, STORAGE_ORDER.indexOf(getStorageKey(p))])
+  );
+  return [...arr].sort((a, b) => {
+    const ai = indices.get(a._id) ?? 99;
+    const bi = indices.get(b._id) ?? 99;
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+  });
+}
 
 const IPHONE18_RESERVATION_DATE = new Date(
   process.env.NEXT_PUBLIC_IPHONE18_RESERVATION_DATE ?? "2026-09-12T23:00:00+03:00"
@@ -395,12 +426,21 @@ export async function generateStaticParams() {
   ];
 }
 
+// Pre-computed Sets for O(1) lookup instead of Array.includes() O(n)
+const PRO_ONLY_MODELS = new Set(["17-pro", "16-pro", "15-pro", "14-pro"]);
+const BASE_ONLY_MODELS = new Set(["17", "16", "15"]);
+const ULTRA_ONLY_MODELS = new Set(["galaxy-s26-ultra", "galaxy-s25-ultra"]);
+const GALAXY_PLUS_MODELS = new Set(["galaxy-s26-plus", "galaxy-s25-plus"]);
+const GALAXY_BASE_MODELS = new Set(["galaxy-s26", "galaxy-s25"]);
+
 export default async function ShopModelPage({
   params,
 }: {
   params: Promise<{ model: string }>;
 }) {
   const { model } = await params;
+
+  // ── iPhone 18 branch ──────────────────────────────────────────────────────
   if (IPHONE18_MODELS[model]) {
     const cfg = IPHONE18_MODELS[model];
     const isOver = Date.now() >= IPHONE18_RESERVATION_DATE.getTime();
@@ -409,116 +449,87 @@ export default async function ShopModelPage({
       return <IPhone18ComingSoon modelName={cfg.name} slides={cfg.slides} />;
     }
 
-    // التاريخ عدى → رجّع الصفحة العادية بالمنتجات
     const allProducts: Product[] = await getCachedProducts();
     const isProOnly = model === "18-pro";
+
+    // Pre-normalize keywords once — avoids kw.toLowerCase() in the hot loop
+    const kwLower = cfg.keywords.map((kw) => kw.toLowerCase());
+
     const products = allProducts.filter((p) => {
       const name = (p.name || "").toLowerCase();
-      const category = (p.category || "").toLowerCase();
-      const matches = cfg.keywords.some(
-        (kw) => name.includes(kw.toLowerCase()) || category.includes(kw.toLowerCase())
-      );
+      const cat  = (p.category || "").toLowerCase();
+      const matches = kwLower.some((kw) => name.includes(kw) || cat.includes(kw));
       if (!matches) return false;
       if (isProOnly) {
-        return !name.includes("ماكس") && !name.includes("max") && !category.includes("ماكس") && !category.includes("max");
+        return !name.includes("ماكس") && !name.includes("max") &&
+               !cat.includes("ماكس")  && !cat.includes("max");
       }
       return true;
     });
     return <ShopModelClient products={products} modelName={cfg.name} hero={cfg.hero ?? []} />;
   }
 
+  // ── Standard model branch ─────────────────────────────────────────────────
   const config = MODEL_MAP[model];
   if (!config) notFound();
 
   const allProducts: Product[] = await getCachedProducts();
 
+  // Pre-normalize keywords once — avoids repeated .toLowerCase() per product per keyword
+  const kwLower = config.keywords.map((kw) => kw.toLowerCase());
+
   const products = allProducts.filter((p) => {
     const name = (p.name || "").toLowerCase();
-    const category = (p.category || "").toLowerCase();
-    return config.keywords.some(
-      (kw) =>
-        name.includes(kw.toLowerCase()) || category.includes(kw.toLowerCase())
-    );
+    const cat  = (p.category || "").toLowerCase();
+    return kwLower.some((kw) => name.includes(kw) || cat.includes(kw));
   });
 
-  const proOnlyModels = ["17-pro", "16-pro", "15-pro", "14-pro"];
-  const baseOnlyModels = ["17", "16", "15"];
-  const ultraOnlyModels = ["galaxy-s26-ultra", "galaxy-s25-ultra"];
+  // ── Sub-model filtering (single pass, pre-lowercased) ────────────────────
+  let filtered: Product[];
 
-  const galaxyPlusModels = ["galaxy-s26-plus", "galaxy-s25-plus"];
-  const galaxyBaseModels = ["galaxy-s26", "galaxy-s25"];
-
-  const filtered = proOnlyModels.includes(model)
-    ? products.filter(
-      (p) =>
-        !(p.name || "").toLowerCase().includes("ماكس") &&
-        !(p.name || "").toLowerCase().includes("max")
-    )
-    : baseOnlyModels.includes(model)
-      ? products.filter((p) => {
-        const name = (p.name || "").toLowerCase();
-        return (
-          !name.includes("برو") &&
-          !name.includes("pro") &&
-          !name.includes("بلس") &&
-          !name.includes("plus") &&
-          !name.includes("اير") &&
-          !name.includes("إير") &&
-          !name.includes("air")
-        );
-      })
-      : ultraOnlyModels.includes(model)
-        ? products.filter((p) => {
-          const name = (p.name || "").toLowerCase();
-          return (
-            name.includes("ultra") ||
-            name.includes("الترا") ||
-            name.includes("ألترا")
-          );
-        })
-        : galaxyPlusModels.includes(model)
-          ? products.filter((p) => {
-            const name = (p.name || "").toLowerCase();
-            return (
-              (name.includes("plus") || name.includes("بلس")) &&
-              !name.includes("ultra") &&
-              !name.includes("الترا") &&
-              !name.includes("ألترا")
-            );
-          })
-          : galaxyBaseModels.includes(model)
-            ? products.filter((p) => {
-              const name = (p.name || "").toLowerCase();
-              const cat = (p.category || "").toLowerCase();
-              return (
-                !name.includes("ultra") &&
-                !name.includes("الترا") &&
-                !name.includes("ألترا") &&
-                !name.includes("plus") &&
-                !name.includes("بلس") &&
-                !cat.includes("ultra") &&
-                !cat.includes("الترا") &&
-                !cat.includes("ألترا") &&
-                !cat.includes("plus") &&
-                !cat.includes("بلس")
-              );
-            })
-            : products;
-
-  const storageOrder = ["64GB", "128GB", "256GB", "512GB", "1TB", "2TB"];
-  const getStorage = (p: Product) => {
-    const match = (p.storage ?? p.name ?? "").match(/\d+\s*(GB|TB|جيجابايت|تيرابايت)/i);
-    return match ? match[0].replace(/\s/g, "").replace(/جيجابايت/i, "GB").replace(/تيرابايت/i, "TB").toUpperCase() : "";
-  };
-  const sorted = [...filtered].sort((a, b) => {
-    const ai = storageOrder.indexOf(getStorage(a));
-    const bi = storageOrder.indexOf(getStorage(b));
-    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
-  });
+  if (PRO_ONLY_MODELS.has(model)) {
+    filtered = products.filter((p) => {
+      const name = (p.name || "").toLowerCase();
+      return !name.includes("ماكس") && !name.includes("max");
+    });
+  } else if (BASE_ONLY_MODELS.has(model)) {
+    filtered = products.filter((p) => {
+      const name = (p.name || "").toLowerCase();
+      return (
+        !name.includes("برو") && !name.includes("pro") &&
+        !name.includes("بلس") && !name.includes("plus") &&
+        !name.includes("اير") && !name.includes("إير") && !name.includes("air")
+      );
+    });
+  } else if (ULTRA_ONLY_MODELS.has(model)) {
+    filtered = products.filter((p) => {
+      const name = (p.name || "").toLowerCase();
+      return name.includes("ultra") || name.includes("الترا") || name.includes("ألترا");
+    });
+  } else if (GALAXY_PLUS_MODELS.has(model)) {
+    filtered = products.filter((p) => {
+      const name = (p.name || "").toLowerCase();
+      return (name.includes("plus") || name.includes("بلس")) &&
+             !name.includes("ultra") && !name.includes("الترا") && !name.includes("ألترا");
+    });
+  } else if (GALAXY_BASE_MODELS.has(model)) {
+    filtered = products.filter((p) => {
+      const name = (p.name || "").toLowerCase();
+      const cat  = (p.category || "").toLowerCase();
+      return (
+        !name.includes("ultra") && !name.includes("الترا") && !name.includes("ألترا") &&
+        !name.includes("plus")  && !name.includes("بلس") &&
+        !cat.includes("ultra")  && !cat.includes("الترا") && !cat.includes("ألترا") &&
+        !cat.includes("plus")   && !cat.includes("بلس")
+      );
+    });
+  } else {
+    filtered = products;
+  }
 
   return (
     <ShopModelClient
-      products={sorted}
+      products={sortByStorage(filtered)}
       modelName={config.label}
       hero={config.hero}
     />

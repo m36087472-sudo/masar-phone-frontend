@@ -1,4 +1,6 @@
 import { RiArrowLeftLine, RiPriceTag3Line, RiShieldCheckLine, RiTruckLine } from "react-icons/ri";
+import { Smartphone } from "lucide-react";
+import RiyalIcon from "../../components/RiyalIcon";
 
 const fmt = (n: number) => n.toLocaleString("en-US");
 
@@ -24,13 +26,13 @@ export default function CartSummary({ total, originalTotal, discountTotal, onNex
         <div className="px-4 py-3 space-y-2.5">
           <div className="flex items-center justify-between">
             <span className="text-xs text-[#8A96A8]">المجموع الأصلي</span>
-            <span className="text-xs font-semibold text-[#040D2A]">{fmt(originalTotal)} <span className="text-[10px] text-[#B0BCCE]">ريال</span></span>
+            <span className="text-xs font-semibold text-[#040D2A]">{fmt(originalTotal)} <RiyalIcon className="w-[11px] h-[11px] inline align-middle" /></span>
           </div>
 
           {discountTotal > 0 && (
             <div className="flex items-center justify-between">
               <span className="text-xs text-emerald-600">الخصم</span>
-              <span className="text-xs font-semibold text-emerald-600">- {fmt(discountTotal)} <span className="text-[10px]">ريال</span></span>
+              <span className="text-xs font-semibold text-emerald-600">- {fmt(discountTotal)} <RiyalIcon className="w-[11px] h-[11px] inline align-middle" /></span>
             </div>
           )}
 
@@ -48,7 +50,7 @@ export default function CartSummary({ total, originalTotal, discountTotal, onNex
             <span className="text-xs sm:text-sm font-bold text-[#040D2A]">الإجمالي</span>
             <div className="text-left">
               <span className="text-base sm:text-lg font-extrabold text-[#0874ED]">{fmt(total)}</span>
-              <span className="text-[10px] sm:text-xs text-[#B0BCCE] mr-1">ريال</span>
+              <RiyalIcon className="w-[13px] h-[13px] inline align-middle text-[#B0BCCE]" />
             </div>
           </div>
         </div>

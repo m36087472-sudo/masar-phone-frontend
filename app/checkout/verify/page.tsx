@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ShieldCheck, RefreshCw, CheckCircle, FileText, Receipt, X, CreditCard, Smartphone, AlertCircle } from "lucide-react";
+import RiyalIcon from "../../components/RiyalIcon";
 import { useCartStore, useCustomerStore } from "../../store/cartStore";
 
 function pad(n: number) { return String(n).padStart(2, "0"); }
@@ -301,7 +302,7 @@ export default function VerifyPage() {
                 <div className="border border-gray-100 rounded-xl overflow-hidden">
                   <div className="flex justify-between items-center px-4 py-2.5 border-b border-gray-100">
                     <span className="text-gray-400 text-xs">المبلغ</span>
-                    <span className="font-bold text-gray-800 text-sm">{fmt(total)} ر.س</span>
+                    <span className="font-bold text-gray-800 text-sm">{fmt(total)} <RiyalIcon className="w-[12px] h-[12px] inline align-middle" /></span>
                   </div>
                   <div className="flex justify-between items-center px-4 py-2.5 border-b border-gray-100">
                     <span className="text-gray-400 text-xs">التاريخ</span>

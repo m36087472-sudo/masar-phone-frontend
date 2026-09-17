@@ -1,4 +1,5 @@
 import React from "react";
+import RiyalIcon from "../../../../components/RiyalIcon";
 
 export function Section({ icon, iconBg, title, children }: {
   icon: React.ReactNode; iconBg: string; title: string; children: React.ReactNode;
@@ -48,7 +49,9 @@ export function FinField({ label, value, onChange, integer }: {
           className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-base font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-gray-50"
         />
         {!integer && (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">ر.س</span>
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+            <RiyalIcon className="inline w-[13px] h-[13px] align-middle" color="#9ca3af" />
+          </span>
         )}
       </div>
     </div>

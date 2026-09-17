@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 interface Banner {
   url: string;
@@ -7,7 +8,6 @@ interface Banner {
 }
 
 export default function HeroSection({ banners }: { banners: Banner[] }) {
-  // banners are already filtered (active only) by the server component
   const active = banners;
   const [current, setCurrent] = useState(0);
 
@@ -22,7 +22,6 @@ export default function HeroSection({ banners }: { banners: Banner[] }) {
   return (
     <div className="px-1 sm:px-5 lg:px-8 pt-4 pb-2">
       <section className="relative w-full">
-        {/* stack all banners on top of each other; the first one defines the height */}
         {active.map((b, i) => (
           <div
             key={b.url}
@@ -34,14 +33,30 @@ export default function HeroSection({ banners }: { banners: Banner[] }) {
               pointerEvents: i === current ? "auto" : "none",
             }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={b.url}
-              alt={`banner-${i + 1}`}
-              style={{ display: "block", width: "100%", height: "auto" }}
-              fetchPriority={i === 0 ? "high" : "auto"}
-              loading={i === 0 ? "eager" : "lazy"}
-            />
+            {i === 0 ? (
+              // First banner: next/image with priority for LCP — server-optimised WebP, correct sizing
+              <Image
+                src={b.url}
+                alt="banner-1"
+                width={1400}
+                height={500}
+                priority
+                fetchPriority="high"
+                style={{ display: "block", width: "100%", height: "auto" }}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1400px"
+              />
+            ) : (
+              // Subsequent banners: lazy-loaded via next/image (still gets WebP optimisation)
+              <Image
+                src={b.url}
+                alt={`banner-${i + 1}`}
+                width={1400}
+                height={500}
+                loading="lazy"
+                style={{ display: "block", width: "100%", height: "auto" }}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1400px"
+              />
+            )}
           </div>
         ))}
 

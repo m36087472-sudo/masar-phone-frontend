@@ -102,6 +102,8 @@ export const getCachedHomeConfig = unstable_cache(
 export const getCachedCategoryBanners = unstable_cache(
   async (categories: string) => {
     try {
+      // `categories` is expected to be a sorted, comma-joined string so the
+      // cache key is stable regardless of the order products appear in the DB.
       const res = await fetch(
         `${BACKEND}/api/admin/category-banners-bulk?categories=${encodeURIComponent(categories)}`,
         { next: { tags: ["category-banners"] } }
