@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
     const sanitizedAddress   = sanitize(address);
     const whatsappUrl = `https://wa.me/${cleanPhone}`;
     const text = [
-      `🏪 طلب لـ متجر مؤسسة البلاد الحديثة للإلكترونيات`,
+      `🏪 طلب لـ متجر مؤسسة مسار الهاتف المعتمد`,
       `🔢 رقم الطلب: #${orderId}`,
       ``,
       `💰 Total Amount: ${verifiedTotal} SAR`,

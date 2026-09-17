@@ -352,6 +352,15 @@ export default function CartPage() {
                     setRateLimitBlockedUntil(null);
                     try {
                       const downPayment = customer?.installmentType === "installment" ? (customer.downPayment ?? 0) : 0;
+
+                      // validation قبل الإرسال
+                      if (!customer?.name || !customer?.whatsapp || !customer?.nationalId || !customer?.address) {
+                        alert("يرجى إكمال بيانات العميل أولاً");
+                        setCardLoading(false);
+                        goTo(2);
+                        return;
+                      }
+
                       const res = await fetch("/api/notify", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -411,7 +420,12 @@ export default function CartPage() {
         <OrderReviewPopup
           customer={reviewInfo}
           total={total}
-          onDone={() => { setReviewInfo(null); setTransitioning(true); setTimeout(() => { setTransitioning(false); goTo(4); }, 3000); }}
+          onDone={() => {
+            setReviewInfo(null);
+            goTo(4);
+            setTransitioning(true);
+            setTimeout(() => setTransitioning(false), 3000);
+          }}
         />
       )}
 

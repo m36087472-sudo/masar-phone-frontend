@@ -12,8 +12,11 @@ const config = {
   },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
-    // Ignore CSS imports (swiper, globals, etc.)
     '\\.css$': '<rootDir>/__tests__/__mocks__/styleMock.js',
+    // Force single React instance — prevents "Invalid hook call" after jest.resetModules()
+    '^react$': '<rootDir>/node_modules/react',
+    '^react-dom$': '<rootDir>/node_modules/react-dom',
+    '^react-dom/client$': '<rootDir>/node_modules/react-dom/client',
   },
   setupFilesAfterEnv: ['<rootDir>/__tests__/setup.ts'],
   testMatch: ['**/__tests__/**/*.test.(ts|tsx)'],
