@@ -16,10 +16,8 @@ const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const resolveImg = (src: string) => src.startsWith("http") ? src : `${API}${src}`;
 
 export default function ProductPageClient({
-  id,
   initialProduct,
 }: {
-  id: string;
   initialProduct: Product | null;
 }) {
   const router = useRouter();
@@ -138,11 +136,7 @@ export default function ProductPageClient({
           </div>
         </div>
 
-        <ProductDetails
-          description={displayProduct.description}
-          specGroups={displayProduct.specGroups}
-          installment={displayProduct.installment}
-        />
+        <ProductDetails installment={displayProduct.installment} />
 
         <ProductSections sections={displayProduct.sections} />
       </div>

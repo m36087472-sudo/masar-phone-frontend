@@ -85,8 +85,8 @@ export async function POST(req: NextRequest) {
         if (product.purchasable === false)
           return NextResponse.json({ ok: false, error: `هذا المنتج غير متاح للبيع حالياً` }, { status: 403 });
 
-        const actualPrice = product.salePrice ?? product.originalPrice ?? product.price ?? 0;
-        if (Math.abs(actualPrice - (item.price ?? 0)) > 1)
+        const actualPrice = Number(product.salePrice ?? product.originalPrice ?? product.price ?? 0);
+        if (Math.abs(actualPrice - Number(item.price ?? 0)) > 1)
           return NextResponse.json({ ok: false, error: "أسعار المنتجات غير صحيحة، يرجى تحديث السلة" }, { status: 400 });
 
         const quantity = Math.min(99, Math.max(1, Math.floor(item.quantity || 1)));

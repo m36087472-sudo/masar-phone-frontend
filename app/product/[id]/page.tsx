@@ -116,7 +116,7 @@ export default async function ProductPage({
         />
       )}
       {/* color/storage selection is pure client state — no searchParams on server */}
-      <ProductPageClient id={id} initialProduct={product} />
+      <ProductPageClient initialProduct={product} />
     </>
   );
 }

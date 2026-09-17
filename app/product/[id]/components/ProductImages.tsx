@@ -55,7 +55,7 @@ export default function ProductImages({ images, name, discountPercent = 0 }: Pro
                 className="absolute inset-0 bg-white"
               >
                 {images.length > 0 ? (
-                  <Image src={images[sel]} alt={name} fill priority={sel === 0} loading={sel === 0 ? "eager" : "lazy"} className="object-contain p-6" sizes="(max-width: 1024px) 100vw, 50vw" />
+                  <Image src={images[sel]} alt={name} fill priority={sel === 0} loading={sel === 0 ? "eager" : "lazy"} quality={85} className="object-contain p-6" sizes="(max-width: 1024px) 100vw, 50vw" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-200 text-7xl">📱</div>
                 )}
@@ -135,7 +135,7 @@ export default function ProductImages({ images, name, discountPercent = 0 }: Pro
                 className="absolute inset-0 bg-white"
               >
                 {images.length > 0 ? (
-                  <Image src={images[sel]} alt={name} fill priority={sel === 0} loading={sel === 0 ? "eager" : "lazy"} className="object-contain p-10" sizes="(max-width: 1280px) 60vw, 700px" />
+                  <Image src={images[sel]} alt={name} fill priority={sel === 0} loading={sel === 0 ? "eager" : "lazy"} quality={85} className="object-contain p-10" sizes="(max-width: 1280px) 60vw, 700px" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-200 text-7xl">📱</div>
                 )}

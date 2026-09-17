@@ -7,7 +7,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
   }
   const tag = req.nextUrl.searchParams.get("tag") || "products";
+  const productId = req.nextUrl.searchParams.get("productId");
+
   revalidateTag(tag, "tag");
+
+  // When a specific product is updated, revalidate its page path directly
+  if (productId) {
+    revalidatePath(`/product/${productId}`);
+  }
+
   if (tag === "home-settings") {
     revalidateTag("products", "tag");
     revalidatePath("/");

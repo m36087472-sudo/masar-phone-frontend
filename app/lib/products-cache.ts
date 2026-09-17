@@ -16,20 +16,21 @@ export const getCachedProducts = unstable_cache(
   { revalidate: 300, tags: ["products"] }
 );
 
-export const getCachedProduct = unstable_cache(
-  async (id: string) => {
-    try {
-      const res = await fetch(`${BACKEND}/api/products/${id}`, {
-        next: { tags: [`product-${id}`, "products"] },
-      });
-      return res.ok ? res.json() : null;
-    } catch {
-      return null;
-    }
-  },
-  ["product"],
-  { revalidate: 300, tags: ["products"] }
-);
+export const getCachedProduct = (id: string) =>
+  unstable_cache(
+    async () => {
+      try {
+        const res = await fetch(`${BACKEND}/api/products/${id}`, {
+          next: { tags: [`product-${id}`, "products"] },
+        });
+        return res.ok ? res.json() : null;
+      } catch {
+        return null;
+      }
+    },
+    [`product-${id}`],
+    { revalidate: 300, tags: [`product-${id}`, "products"] }
+  )();
 
 // Shared company cache — one source for layout, metadata, product page
 export const getCachedCompany = unstable_cache(

@@ -131,6 +131,33 @@ export default function CartPage() {
       .catch(() => {});
   }, []);
 
+  // Refresh prices from backend when reaching step 4
+  useEffect(() => {
+    if (step !== 4 || items.length === 0) return;
+    const ids = items.map(i => i.product._id).filter(Boolean);
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/products/verify-cart`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids }),
+    })
+      .then(r => r.json())
+      .then((products: any[]) => {
+        products.forEach(p => {
+          const item = items.find(i => i.product._id === p._id);
+          if (item) {
+            const freshPrice = Number(p.salePrice ?? p.originalPrice ?? p.price ?? 0);
+            if (freshPrice !== Number(item.product.salePrice ?? item.product.originalPrice ?? item.product.price)) {
+              updateQty(item.cartKey, item.qty); // trigger re-render
+              item.product.salePrice = p.salePrice;
+              item.product.originalPrice = p.originalPrice;
+              item.product.price = p.price;
+            }
+          }
+        });
+      })
+      .catch(() => {});
+  }, [step]);
+
   const total = mounted ? totalPrice() : 0;
   const count = mounted ? totalItems() : 0;
   const installmentMonths = mounted
@@ -372,7 +399,7 @@ export default function CartPage() {
                           items: items.map(i => ({
                             productId: i.product._id,
                             name: i.product.name,
-                            price: i.product.salePrice ?? i.product.originalPrice ?? i.product.price,
+                            price: Number(i.product.salePrice ?? i.product.originalPrice ?? i.product.price),
                             quantity: i.qty,
                           })),
                           total,

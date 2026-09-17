@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import {
   IoCartOutline, IoCheckmarkDoneCircle, IoFlash,
   IoStarSharp, IoCheckmarkCircle, IoShieldCheckmarkOutline,
@@ -83,7 +84,13 @@ export default function ProductInfo({ product, selectedColor, selectedStorage, o
               {brand && (
                 brand.toLowerCase() === "apple" ? (
                   <div className="flex items-center gap-1 bg-gray-900 px-2.5 py-1 rounded-lg">
-                    <img src="/ebe10e4a-ea76-4c7f-bff8-a89fde550082.svg" alt="Apple" className="w-2.5 h-3 brightness-0 invert" />
+                    <Image
+                      src="/ebe10e4a-ea76-4c7f-bff8-a89fde550082.svg"
+                      alt="Apple"
+                      width={10}
+                      height={12}
+                      className="brightness-0 invert"
+                    />
                     <span className="text-[11px] font-black text-white tracking-wide">Apple</span>
                   </div>
                 ) : (

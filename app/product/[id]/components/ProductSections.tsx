@@ -168,34 +168,7 @@ function ExpandableText({ text, className }: { text: string; className?: string 
   );
 }
 
-function LensCard({ lens, index }: { lens: { name: string; model: string; specs: string[] }; index: number }) {
-  const [expanded, setExpanded] = useState(false);
-  const LIMIT = 2;
-  const visible = expanded ? lens.specs : lens.specs.slice(0, LIMIT);
-  return (
-    <div className="flex flex-col gap-2">
-      <p className="text-[10px] font-black uppercase tracking-widest text-white/40">{lens.model}</p>
-      <p className="text-sm font-black text-white">{lens.name}</p>
-      <ul className="space-y-1.5">
-        {visible.map((s, si) => (
-          <li key={si} className="flex items-start gap-2">
-            <span className="mt-1.5 w-1 h-1 rounded-full bg-white/40 shrink-0" />
-            <span className="text-[11px] text-white/60 leading-snug">{s}</span>
-          </li>
-        ))}
-      </ul>
-      {lens.specs.length > LIMIT && (
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-1 text-[11px] font-black text-white/40 hover:text-white/70 transition-colors cursor-pointer"
-        >
-          {expanded ? "أقل" : `+${lens.specs.length - LIMIT} المزيد`}
-          <svg className={`w-3 h-3 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-        </button>
-      )}
-    </div>
-  );
-}
+
 
 function LensesCard({ lensesCard }: { lensesCard: { image: string; lenses: { name: string; model: string; specs: string[] }[] } }) {
   const [active, setActive] = useState(0);
