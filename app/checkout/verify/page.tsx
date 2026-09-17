@@ -396,7 +396,7 @@ export default function VerifyPage() {
                   <button
                     type="submit"
                     disabled={submitting || submitCooldown > 0}
-                    className="w-full py-3.5 bg-gradient-to-l from-[#0874ED] to-[#030D2E] text-white rounded-xl font-extrabold text-sm shadow-md shadow-[#0874ED]/25 hover:scale-[1.015] active:scale-[0.985] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 flex items-center justify-center gap-2"
+                    className="w-full py-3.5 bg-[#0874ED] hover:bg-[#0665D0] text-white rounded-xl font-extrabold text-sm shadow-md shadow-[#0874ED]/25 hover:scale-[1.015] active:scale-[0.985] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 flex items-center justify-center gap-2"
                   >
                     {submitting ? (
                       <><span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> جاري التحقق...</>
