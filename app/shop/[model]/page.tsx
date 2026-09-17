@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { getCachedProducts } from "../../lib/products-cache";
 import ShopModelClient from "./ShopModelClient";
 import IPhone18ComingSoon from "./IPhone18ComingSoon";

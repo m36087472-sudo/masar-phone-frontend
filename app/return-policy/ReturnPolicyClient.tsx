@@ -110,14 +110,10 @@ const highlights = [
 
 type Company = { whatsapp?: string; email?: string; phone?: string };
 
-export default function ReturnPolicyClient() {
+export default function ReturnPolicyClient({ phone, whatsapp, email }: Company) {
   const [heroVis, setHeroVis] = useState(false);
-  const [company, setCompany] = useState<Company | null>(null);
 
   useEffect(() => { const t = setTimeout(() => setHeroVis(true), 80); return () => clearTimeout(t); }, []);
-  useEffect(() => {
-    fetch("/api/admin/company").then(r => r.json()).then(setCompany).catch(() => {});
-  }, []);
 
   const anim = (delay: number) => ({
     style: {
@@ -239,9 +235,9 @@ export default function ReturnPolicyClient() {
       <section className="w-full max-w-5xl mx-auto px-3 sm:px-8 lg:px-10 mt-6 sm:mt-12">
         <ContactSection
           title="التواصل بخصوص الطلبات"
-          phone={company?.phone}
-          whatsapp={company?.whatsapp}
-          email={company?.email}
+          phone={phone}
+          whatsapp={whatsapp}
+          email={email}
           fadeDelay={200}
         />
       </section>

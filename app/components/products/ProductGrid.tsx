@@ -85,20 +85,27 @@ const CategoryRow = memo(function CategoryRow({ category, items, isFirst }: { ca
 });
 
 // Module-level helpers — created once, not inside useMemo
-const parseStorage = (s?: string): number => {
-  if (!s) return 0;
-  const n = parseFloat(s);
-  if (s.includes("تيرا") || s.toLowerCase().includes("tb")) return n * 1024;
-  return n || 0;
-};
+const STORAGE_RE = /(\d+)\s*(GB|TB|جيجابايت|تيرابايت)/i;
+const STORAGE_ORDER = ["64GB", "128GB", "256GB", "512GB", "1TB", "2TB"];
 
-const colorOrder = (c?: string): number => {
-  if (!c) return 99;
-  if (c.includes("برتقال") || c.toLowerCase().includes("orange")) return 0;
-  if (c.includes("سيلفر") || c.toLowerCase().includes("silver")) return 1;
-  if (c.includes("ازرق") || c.includes("أزرق") || c.toLowerCase().includes("blue")) return 2;
-  return 3;
-};
+function getStorageKey(p: Product): string {
+  const src = p.storage ?? p.name ?? "";
+  const m = STORAGE_RE.exec(src);
+  if (!m) return "";
+  const unit = m[2].replace(/جيجابايت/i, "GB").replace(/تيرابايت/i, "TB").toUpperCase();
+  return `${m[1]}${unit}`;
+}
+
+function sortByStorage(arr: Product[]): Product[] {
+  const indices = new Map<string, number>(
+    arr.map((p) => [p._id, STORAGE_ORDER.indexOf(getStorageKey(p))])
+  );
+  return [...arr].sort((a, b) => {
+    const ai = indices.get(a._id) ?? 99;
+    const bi = indices.get(b._id) ?? 99;
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+  });
+}
 
 type HomeSettings = { category: string; subCategory: string; showInHome: boolean; order: number };
 type HomeConfig = { settings: HomeSettings[]; max: number };
@@ -119,11 +126,7 @@ export default function ProductGrid({
       (map[cat] ??= []).push(p);
     });
     for (const cat of Object.keys(map)) {
-      map[cat].sort((a, b) => {
-        const storageDiff = parseStorage(a.storage) - parseStorage(b.storage);
-        if (storageDiff !== 0) return storageDiff;
-        return colorOrder(a.color) - colorOrder(b.color);
-      });
+      map[cat] = sortByStorage(map[cat]);
     }
     return map;
   }, [products]);

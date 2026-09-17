@@ -115,14 +115,10 @@ const commitments = [
 
 type Company = { nameAr?: string; addressAr?: string; phone?: string; whatsapp?: string; email?: string; taxNumber?: string };
 
-export default function PrivacyClient() {
+export default function PrivacyClient({ company }: { company: Company }) {
   const [heroVis, setHeroVis] = useState(false);
-  const [company, setCompany] = useState<Company | null>(null);
 
   useEffect(() => { const t = setTimeout(() => setHeroVis(true), 80); return () => clearTimeout(t); }, []);
-  useEffect(() => {
-    fetch("/api/admin/company").then(r => r.json()).then(setCompany).catch(() => {});
-  }, []);
 
   const anim = (delay: number) => ({
     style: {

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import AboutClient from "./AboutClient";
+import { getCachedCompany } from "../lib/products-cache";
 
 const SITE_URL = "https://masarphone.com";
 
@@ -18,6 +19,7 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/about` },
 };
 
-export default function AboutPage() {
-  return <AboutClient />;
+export default async function AboutPage() {
+  const company = await getCachedCompany();
+  return <AboutClient whatsapp={company.whatsapp || ""} email={company.email || ""} />;
 }

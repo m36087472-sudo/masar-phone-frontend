@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import PrivacyClient from "./PrivacyClient";
+import { getCachedCompany } from "../lib/products-cache";
 
 const SITE_URL = "https://masarphone.com";
 
@@ -18,6 +19,7 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/privacy` },
 };
 
-export default function PrivacyPage() {
-  return <PrivacyClient />;
+export default async function PrivacyPage() {
+  const company = await getCachedCompany();
+  return <PrivacyClient company={company} />;
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import ReturnPolicyClient from "./ReturnPolicyClient";
+import { getCachedCompany } from "../lib/products-cache";
 
 const SITE_URL = "https://masarphone.com";
 
@@ -18,6 +19,13 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/return-policy` },
 };
 
-export default function ReturnPolicyPage() {
-  return <ReturnPolicyClient />;
+export default async function ReturnPolicyPage() {
+  const company = await getCachedCompany();
+  return (
+    <ReturnPolicyClient
+      phone={company.phone || ""}
+      whatsapp={company.whatsapp || ""}
+      email={company.email || ""}
+    />
+  );
 }
