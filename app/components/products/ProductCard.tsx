@@ -148,22 +148,13 @@ function ProductCard({ product, priority = false }: { product: Product; priority
           {hasDiscount && <span className="text-[9px] sm:text-[10px] text-gray-400 line-through">{fmt(originalPrice)}</span>}
         </div>
 
-        {/* Installment */}
-        {displayPrice > 1000 && (
-          <div className="flex items-center justify-between gap-1.5 bg-gradient-to-l from-[#0B43FD]/10 to-[#e8eeff] border border-[#0B43FD]/20 rounded-lg px-2 py-1">
-            <div className="flex items-center gap-1">
-              <Icon icon="solar:card-bold" width={11} className="text-[#0B43FD] shrink-0" />
-              <span className="text-[8px] sm:text-[9px] font-bold text-gray-500">أو قسّطها</span>
-            </div>
-            <div className="flex items-baseline gap-0.5">
-              <span className="text-[11px] sm:text-[12px] font-black text-[#0B43FD] leading-none">
-                {fmt(Math.ceil((displayPrice - 1000) / 24))}
-              </span>
-              <RiyalIcon className="w-[10px] h-[10px] sm:w-[11px] sm:h-[11px] inline align-middle" />
-              <span className="text-[7px] sm:text-[8px] font-semibold text-gray-400">× 24 شهر</span>
-            </div>
-          </div>
-        )}
+        {/* Down payment */}
+        <div className="flex items-center gap-1 bg-gradient-to-l from-[#0B43FD]/10 to-[#e8eeff] border border-[#0B43FD]/20 rounded-lg px-2 py-1">
+          <Icon icon="solar:card-bold" width={11} className="text-[#0B43FD] shrink-0" />
+          <span className="text-[8px] sm:text-[9px] font-bold text-gray-600">دفعة أولى</span>
+          <span className="text-[11px] sm:text-[12px] font-black text-[#0B43FD] leading-none">1000</span>
+          <RiyalIcon className="w-[10px] h-[10px] sm:w-[11px] sm:h-[11px] inline align-middle" />
+        </div>
 
         {/* CTA */}
         <button onClick={handleAddToCart} disabled={!product.inStock}

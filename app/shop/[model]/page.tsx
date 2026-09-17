@@ -427,6 +427,27 @@ export async function generateStaticParams() {
   ];
 }
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ model: string }>;
+}): Promise<Metadata> {
+  const { model } = await params;
+  const cfg = IPHONE18_MODELS[model] ?? MODEL_MAP[model];
+  if (!cfg) return { title: "مسار الهاتف المعتمد" };
+  const name = "name" in cfg ? (cfg as { name: string }).name : (cfg as { label: string }).label;
+  return {
+    title: `${name} | مسار الهاتف المعتمد`,
+    description: `تصفح أفضل أسعار ${name} بالتقسيط والضمان في مسار الهاتف المعتمد.`,
+    openGraph: {
+      title: `${name} | مسار الهاتف المعتمد`,
+      description: `تصفح أفضل أسعار ${name} بالتقسيط والضمان في مسار الهاتف المعتمد.`,
+      locale: "ar_SA",
+      type: "website",
+    },
+  };
+}
+
 // Pre-computed Sets for O(1) lookup instead of Array.includes() O(n)
 const PRO_ONLY_MODELS = new Set(["17-pro", "16-pro", "15-pro", "14-pro"]);
 const BASE_ONLY_MODELS = new Set(["17", "16", "15"]);
