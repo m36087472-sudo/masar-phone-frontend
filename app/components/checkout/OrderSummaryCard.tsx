@@ -1,7 +1,10 @@
 import { ShoppingCart, Truck, CreditCard, Wallet, CalendarDays, BadgePercent, Banknote } from "lucide-react";
-import RiyalIcon from "../RiyalIcon";
+import CurrencyIcon from "../CurrencyIcon";
+import { useCurrency } from "../../hooks/useCurrency";
 
-const fmt = (n: number) => n.toLocaleString("en-US");
+function fmt(n: number, currency?: string) {
+  return n.toLocaleString("en-US");
+}
 
 interface OrderSummaryCardProps {
   total: number;
@@ -20,6 +23,7 @@ export default function OrderSummaryCard({
   months,
   cta,
 }: OrderSummaryCardProps) {
+  const { format } = useCurrency();
   const isInstallment = installmentType === "installment" && downPayment != null && downPayment > 0;
   const dueNow = isInstallment ? downPayment! : total;
   const remaining = isInstallment ? total - downPayment! : 0;
@@ -43,7 +47,7 @@ export default function OrderSummaryCard({
           <span className="text-xs text-gray-500 flex items-center gap-1.5">
             <ShoppingCart size={12} className="text-[#1a6b7d]" />مجموع السلة
           </span>
-          <span className="text-xs font-bold text-gray-800">{fmt(total)} <RiyalIcon className="inline w-[11px] h-[11px] align-middle" /></span>
+          <span className="text-xs font-bold text-gray-800">{format(total)} <CurrencyIcon className="inline w-[11px] h-[11px] align-middle" /></span>
         </div>
 
         <div className="flex justify-between items-center py-2">
@@ -61,14 +65,14 @@ export default function OrderSummaryCard({
               <span className="text-xs text-gray-500 flex items-center gap-1.5">
                 <Wallet size={12} className="text-[#1a6b7d]" />الدفعة الأولى
               </span>
-              <span className="text-xs font-bold text-gray-800">{fmt(downPayment!)} <RiyalIcon className="inline w-[11px] h-[11px] align-middle" /></span>
+              <span className="text-xs font-bold text-gray-800">{format(downPayment!)} <CurrencyIcon className="inline w-[11px] h-[11px] align-middle" /></span>
             </div>
             <div className="flex justify-between items-center py-2">
               <span className="text-xs text-gray-500 flex items-center gap-1.5">
                 <CalendarDays size={12} className="text-[#1a6b7d]" />آلية التقسيط
               </span>
               <span className="text-[11px] font-semibold text-[#1a6b7d] bg-[#1a6b7d]/8 px-2 py-0.5 rounded-full">
-                {months} شهر × {fmt(monthlyPayment)} <RiyalIcon className="inline w-[10px] h-[10px] align-middle" />
+                {months} شهر × {format(monthlyPayment)} <CurrencyIcon className="inline w-[10px] h-[10px] align-middle" />
               </span>
             </div>
           </>
@@ -97,8 +101,8 @@ export default function OrderSummaryCard({
             </div>
           </div>
           <div className="text-left">
-            <span className="text-xl font-black text-white">{fmt(dueNow)}</span>
-            <RiyalIcon className="inline w-[13px] h-[13px] align-middle mr-1" color="rgba(255,255,255,0.6)" />
+            <span className="text-xl font-black text-white">{format(dueNow)}</span>
+            <CurrencyIcon className="inline w-[13px] h-[13px] align-middle mr-1" color="rgba(255,255,255,0.6)" />
           </div>
         </div>
       </div>

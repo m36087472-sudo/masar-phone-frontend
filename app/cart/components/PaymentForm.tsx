@@ -2,12 +2,13 @@
 
 import { useState, useMemo } from "react";
 import { CreditCard, ChevronDown, Calendar, Wallet, CheckCircle2, ArrowRight } from "lucide-react";
-import RiyalIcon from "../../components/RiyalIcon";
+import CurrencyIcon from "../../components/CurrencyIcon";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import type { CustomerInfo } from "../../store/cartStore";
 import { useCartStore } from "../../store/cartStore";
+import { useCurrency } from "../../hooks/useCurrency";
 
 const fmt = (n: number) => n.toLocaleString("ar-EG");
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -24,22 +25,44 @@ interface Props {
   onSubmit: (info: CustomerInfo) => void;
 }
 
-export default function PaymentForm({ total, itemCount, initialData, installmentMonths, onBack, onSubmit }: Props) {
+export default function PaymentForm({ total: totalProp, itemCount, initialData, installmentMonths, onBack, onSubmit }: Props) {
   const { pendingDiscountCode, items } = useCartStore();
+  const { getPrice, format } = useCurrency();
+
+  // احسب الإجمالي من الـ items مباشرة حسب العملة الحالية
+  const total = useMemo(() => {
+    const computed = items.reduce((sum, { product, qty }) => {
+      const storageKey = product.storage ? `${product.storage}||` : undefined;
+      const { originalPrice, salePrice } = getPrice(product, storageKey);
+      return sum + (salePrice ?? originalPrice) * qty;
+    }, 0);
+    // استخدم الـ prop لو الحساب المحلي صفر (احتياط)
+    return computed > 0 ? computed : totalProp;
+  }, [items, getPrice, totalProp]);
 
   const maxMonths = installmentMonths ?? 24;
   const MONTHS_OPTIONS = Array.from({ length: Math.floor(maxMonths / 2) }, (_, i) => (i + 1) * 2);
 
-  const DOWN_OPTIONS = [
-    { label: "1,000 ريال", amount: 1000 },
-    { label: "1,500 ريال", amount: 1500 },
-    { label: "2,000 ريال", amount: 2000 },
-  ];
+  // الدفعات الأولى — ثابتة لو المنتج > 3000، نسبية لو أقل
+  const DOWN_OPTIONS = useMemo(() => {
+    if (total > 3000) {
+      return [
+        { pct: null, amount: 1000, label: "1,000" },
+        { pct: null, amount: 1500, label: "1,500" },
+        { pct: null, amount: 2000, label: "2,000" },
+      ];
+    }
+    return [0.1, 0.2, 0.3].map((p) => {
+      const amount = Math.ceil(total * p);
+      return { pct: p, amount, label: amount.toLocaleString("en-US") };
+    });
+  }, [total]);
 
   const [installmentType, setInstallmentType] = useState<"full" | "installment">(initialData?.installmentType ?? "installment");
   const [installmentProvider, setInstallmentProvider] = useState<"tabby" | "tamara" | "store">("store");
   const [months, setMonths] = useState(initialData?.months ?? 12);
-  const [downPayment, setDownPayment] = useState(DOWN_OPTIONS[0].amount);
+  const [downPayment, setDownPayment] = useState<number | null>(null);
+  const effectiveDownPayment = downPayment ?? DOWN_OPTIONS[0].amount;
   const [showSchedule, setShowSchedule] = useState(false);
 
   const [discountCode, setDiscountCode] = useState(initialData?.discountCode ?? pendingDiscountCode ?? "");
@@ -51,9 +74,9 @@ export default function PaymentForm({ total, itemCount, initialData, installment
 
   const monthly = useMemo(() => {
     if (installmentType === "full") return 0;
-    const rem = finalTotal - downPayment;
+    const rem = finalTotal - effectiveDownPayment;
     return rem > 0 ? Math.ceil(rem / months) : 0;
-  }, [finalTotal, months, installmentType, downPayment]);
+  }, [finalTotal, months, installmentType, effectiveDownPayment]);
 
   const schedule = useMemo(() => {
     const now = new Date();
@@ -87,7 +110,7 @@ export default function PaymentForm({ total, itemCount, initialData, installment
       installmentProvider: installmentType === "installment" ? installmentProvider : undefined,
       storeInstallment: installmentType === "installment" && installmentProvider === "store",
       months,
-      downPayment,
+      downPayment: effectiveDownPayment,
       discountCode: discountApplied ? discountCode : undefined,
       discountAmount: discountApplied ? discountAmount : undefined,
     });
@@ -105,7 +128,9 @@ export default function PaymentForm({ total, itemCount, initialData, installment
       <div className="bg-white rounded-2xl border border-[#E8EDF5] shadow-sm overflow-hidden">
         <div className="divide-y divide-[#F7F9FC]">
           {items.map(({ product, qty, cartKey }, idx) => {
-            const price = product.salePrice ?? product.originalPrice ?? product.price;
+            const storageKey = product.storage ? `${product.storage}||` : undefined;
+            const { originalPrice, salePrice } = getPrice(product, storageKey);
+            const price = salePrice ?? originalPrice;
             const rawImg = product.images?.[0] || product.image;
             const img = rawImg ? resolveImg(rawImg) : undefined;
             return (
@@ -118,7 +143,7 @@ export default function PaymentForm({ total, itemCount, initialData, installment
                 </div>
                 <p className="flex-1 text-xs sm:text-sm font-semibold text-[#040D2A] truncate">{product.name}</p>
                 <span className="text-xs sm:text-sm font-bold text-[#0874ED] shrink-0">
-                  {fmt(price * qty)} <RiyalIcon className="w-[11px] h-[11px] inline align-middle" />
+                  {format(price * qty)} <CurrencyIcon className="w-[11px] h-[11px] inline align-middle" />
                 </span>
               </div>
             );
@@ -236,24 +261,24 @@ export default function PaymentForm({ total, itemCount, initialData, installment
                       الدفعة الأولى
                     </label>
                     <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
-                      {DOWN_OPTIONS.map((opt) => (
+                      {DOWN_OPTIONS.map((opt, i) => (
                         <button
-                          key={opt.amount}
+                          key={i}
                           type="button"
                           onClick={() => setDownPayment(opt.amount)}
                           className={`relative py-3 px-2 rounded-xl border-2 text-center transition-all duration-150 ${
-                            downPayment === opt.amount
+                            effectiveDownPayment === opt.amount
                               ? "border-[#0874ED] bg-[#0874ED]/8 shadow-sm"
                               : "border-gray-200 hover:border-[#0874ED]/40 bg-white"
                           }`}
                         >
-                          {downPayment === opt.amount && (
+                          {effectiveDownPayment === opt.amount && (
                             <span className="absolute top-1.5 left-1.5">
                               <CheckCircle2 size={12} className="text-[#0874ED]" />
                             </span>
                           )}
-                          <p className={`text-xs font-extrabold ${downPayment === opt.amount ? "text-[#0874ED]" : "text-gray-700"}`}>
-                            {opt.label}
+                          <p className={`text-xs font-extrabold ${effectiveDownPayment === opt.amount ? "text-[#0874ED]" : "text-gray-700"}`}>
+                            {opt.label} <CurrencyIcon className="w-[9px] h-[9px] inline align-middle" />
                           </p>
                         </button>
                       ))}
@@ -264,8 +289,8 @@ export default function PaymentForm({ total, itemCount, initialData, installment
                   <div className="bg-gradient-to-r from-[#0874ED]/8 to-[#030D2E]/5 border border-[#0874ED]/15 rounded-2xl p-2.5 sm:p-3 grid grid-cols-2 gap-2">
                     <div className="bg-white/60 rounded-xl p-2 sm:p-2.5 text-center">
                       <p className="text-[10px] text-gray-500 font-medium mb-1">القسط الشهري</p>
-                      <p className="text-base sm:text-lg font-extrabold text-[#0874ED] leading-tight">{fmt(monthly)}</p>
-                      <RiyalIcon className="w-[11px] h-[11px] inline align-middle" />
+                      <p className="text-base sm:text-lg font-extrabold text-[#0874ED] leading-tight">{format(monthly)}</p>
+                      <CurrencyIcon className="w-[11px] h-[11px] inline align-middle" />
                     </div>
                     <div className="bg-white/60 rounded-xl p-2 sm:p-2.5 text-center">
                       <p className="text-[10px] text-gray-500 font-medium mb-1">المدة</p>
@@ -316,8 +341,8 @@ export default function PaymentForm({ total, itemCount, initialData, installment
                                 </div>
                                 <span className="text-center text-gray-500 tabular-nums">{row.date}</span>
                                 <span className="text-left font-bold text-[#040D2A] tabular-nums">
-                                  {fmt(row.amount)}
-                                  <RiyalIcon className="w-[9px] h-[9px] inline align-middle ml-0.5" />
+                                  {format(row.amount)}
+                                  <CurrencyIcon className="w-[9px] h-[9px] inline align-middle ml-0.5" />
                                 </span>
                               </div>
                             ))}
@@ -326,8 +351,8 @@ export default function PaymentForm({ total, itemCount, initialData, installment
                           <div className="bg-[#F7F9FC] border-t border-[#E8EDF5] px-4 py-2.5 flex items-center justify-between">
                             <span className="text-[11px] font-semibold text-gray-500">الإجمالي</span>
                             <span className="text-sm font-extrabold text-[#0874ED] tabular-nums">
-                              {fmt(monthly * months)}
-                              <RiyalIcon className="w-[11px] h-[11px] inline align-middle ml-1" />
+                              {format(monthly * months)}
+                              <CurrencyIcon className="w-[11px] h-[11px] inline align-middle ml-1" />
                             </span>
                           </div>
                         </div>

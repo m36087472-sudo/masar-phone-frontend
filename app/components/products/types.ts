@@ -6,6 +6,8 @@ export interface StorageOption {
   size?: string;
   originalPrice: number;
   salePrice?: number;
+  /** Per-country prices for this storage SKU */
+  countryPrices?: Record<string, { currency: string; originalPrice: number; salePrice?: number | null }>;
 }
 
 export interface ProductVariant {
@@ -98,4 +100,6 @@ export interface Product {
   inStock: boolean;
   status?: "PRE_LAUNCH" | "AVAILABLE" | "OUT_OF_STOCK";
   purchasable?: boolean;
+  /** Per-country prices map — key is currency code (SAR, AED, QAR, KWD, OMR) */
+  countryPrices?: Record<string, { currency: string; originalPrice: number; salePrice?: number | null }>;
 }

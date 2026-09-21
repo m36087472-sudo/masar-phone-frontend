@@ -2,6 +2,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import CountryPricesSection, {
+  type CountryPricesMap,
+  formMapToPayload,
+} from "../../components/CountryPricesSection";
 
 const inputCls = "w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
 
@@ -54,6 +58,7 @@ export default function NewProductPage() {
   const [saving, setSaving] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
   const [subCategories, setSubCategories] = useState<string[]>([]);
+  const [countryPrices, setCountryPrices] = useState<CountryPricesMap>({});
 
   const imageInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
@@ -165,6 +170,12 @@ export default function NewProductPage() {
         }
       });
       if (galleryUrls.length) fd.append("galleryUrls", JSON.stringify(galleryUrls));
+
+      // Country prices — send as JSON string
+      const cpPayload = formMapToPayload(countryPrices);
+      if (Object.keys(cpPayload).length > 0) {
+        fd.append("countryPrices", JSON.stringify(cpPayload));
+      }
 
       const res = await fetch("/api/admin/products", {
         method: "POST",
@@ -402,9 +413,15 @@ export default function NewProductPage() {
         </div>
       </Section>
 
+      {/* ── أسعار الدول ── */}
+      <CountryPricesSection
+        prices={countryPrices}
+        onChange={setCountryPrices}
+        sarOriginalPrice={originalPrice}
+      />
+
       {/* ── الأزرار ── */}
-      <div className="flex gap-3 pt-2">
-        <button type="button" onClick={() => router.push("/admin/products")} className="flex-1 py-2.5 border border-gray-300 text-gray-700 rounded-xl text-sm hover:bg-gray-50">
+      <div className="flex gap-3 pt-2">        <button type="button" onClick={() => router.push("/admin/products")} className="flex-1 py-2.5 border border-gray-300 text-gray-700 rounded-xl text-sm hover:bg-gray-50">
           إلغاء
         </button>
         <button type="submit" disabled={saving} className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-60">

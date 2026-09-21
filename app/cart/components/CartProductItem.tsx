@@ -1,10 +1,10 @@
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { RiDeleteBin6Line, RiSubtractLine, RiAddLine } from "react-icons/ri";
-import RiyalIcon from "../../components/RiyalIcon";
+import CurrencyIcon from "../../components/CurrencyIcon";
+import { useCurrency } from "../../hooks/useCurrency";
 import type { Product } from "../../components/products/types";
 
-const fmt = (n: number) => n.toLocaleString("en-US");
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const resolveImg = (src: string) => src.startsWith("http") ? src : `${API}${src}`;
 
@@ -17,9 +17,17 @@ interface Props {
 }
 
 export default function CartProductItem({ product, qty, cartKey, onRemove, onUpdateQty }: Props) {
-  const price = product.salePrice ?? product.originalPrice ?? product.price;
-  const hasDiscount = product.salePrice && product.originalPrice && product.salePrice < product.originalPrice;
-  const discount = hasDiscount ? Math.round(((product.originalPrice! - product.salePrice!) / product.originalPrice!) * 100) : 0;
+  const { getPrice, format } = useCurrency();
+
+  // استخدام storageKey إذا كان المنتج محدداً بـ storage
+  const storageKey = product.storage
+    ? `${product.storage}||`
+    : undefined;
+
+  const { originalPrice, salePrice, available } = getPrice(product, storageKey);
+  const price = salePrice ?? originalPrice;
+  const hasDiscount = salePrice != null && salePrice < originalPrice;
+  const discount = hasDiscount ? Math.round(((originalPrice - salePrice!) / originalPrice) * 100) : 0;
   const rawImg = product.images?.[0] || product.image;
   const img = rawImg ? resolveImg(rawImg) : undefined;
 
@@ -62,10 +70,10 @@ export default function CartProductItem({ product, qty, cartKey, onRemove, onUpd
         {/* الصف الثاني: السعر + أزرار الكمية */}
         <div className="flex items-center justify-between mt-1.5 sm:mt-2">
           <div className="flex items-baseline gap-1 flex-wrap">
-            <span className="text-sm sm:text-base font-extrabold text-[#0874ED]">{fmt(price * qty)}</span>
-            <RiyalIcon className="w-[13px] h-[13px] inline align-middle" />
+            <span className="text-sm sm:text-base font-extrabold text-[#0874ED]">{format(price * qty)}</span>
+            <CurrencyIcon className="w-[13px] h-[13px] inline align-middle" />
             {hasDiscount && (
-              <span className="text-[10px] sm:text-xs text-[#B0BCCE] line-through">{fmt(product.originalPrice! * qty)} <RiyalIcon className="w-[10px] h-[10px] inline align-middle" /></span>
+              <span className="text-[10px] sm:text-xs text-[#B0BCCE] line-through">{format(originalPrice * qty)} <CurrencyIcon className="w-[10px] h-[10px] inline align-middle" /></span>
             )}
           </div>
 

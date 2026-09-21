@@ -1,8 +1,7 @@
 import { RiArrowLeftLine, RiPriceTag3Line, RiShieldCheckLine, RiTruckLine } from "react-icons/ri";
 import { Smartphone } from "lucide-react";
-import RiyalIcon from "../../components/RiyalIcon";
-
-const fmt = (n: number) => n.toLocaleString("en-US");
+import CurrencyIcon from "../../components/CurrencyIcon";
+import { useCurrency } from "../../hooks/useCurrency";
 
 interface Props {
   total: number;
@@ -12,6 +11,7 @@ interface Props {
 }
 
 export default function CartSummary({ total, originalTotal, discountTotal, onNext }: Props) {
+  const { format } = useCurrency();
   return (
     <div className="w-full lg:w-72 shrink-0 lg:sticky lg:top-6">
       <div className="bg-white rounded-2xl border border-[#E8EDF5] shadow-sm overflow-hidden">
@@ -26,13 +26,13 @@ export default function CartSummary({ total, originalTotal, discountTotal, onNex
         <div className="px-4 py-3 space-y-2.5">
           <div className="flex items-center justify-between">
             <span className="text-xs text-[#8A96A8]">المجموع الأصلي</span>
-            <span className="text-xs font-semibold text-[#040D2A]">{fmt(originalTotal)} <RiyalIcon className="w-[11px] h-[11px] inline align-middle" /></span>
+            <span className="text-xs font-semibold text-[#040D2A]">{format(originalTotal)} <CurrencyIcon className="w-[11px] h-[11px] inline align-middle" /></span>
           </div>
 
           {discountTotal > 0 && (
             <div className="flex items-center justify-between">
               <span className="text-xs text-emerald-600">الخصم</span>
-              <span className="text-xs font-semibold text-emerald-600">- {fmt(discountTotal)} <RiyalIcon className="w-[11px] h-[11px] inline align-middle" /></span>
+              <span className="text-xs font-semibold text-emerald-600">- {format(discountTotal)} <CurrencyIcon className="w-[11px] h-[11px] inline align-middle" /></span>
             </div>
           )}
 
@@ -49,8 +49,8 @@ export default function CartSummary({ total, originalTotal, discountTotal, onNex
           <div className="flex items-center justify-between">
             <span className="text-xs sm:text-sm font-bold text-[#040D2A]">الإجمالي</span>
             <div className="text-left">
-              <span className="text-base sm:text-lg font-extrabold text-[#0874ED]">{fmt(total)}</span>
-              <RiyalIcon className="w-[13px] h-[13px] inline align-middle text-[#B0BCCE]" />
+              <span className="text-base sm:text-lg font-extrabold text-[#0874ED]">{format(total)}</span>
+              <CurrencyIcon className="w-[13px] h-[13px] inline align-middle text-[#B0BCCE]" />
             </div>
           </div>
         </div>

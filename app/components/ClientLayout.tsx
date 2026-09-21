@@ -2,6 +2,7 @@
 import { usePathname } from "next/navigation";
 import { Navbar } from "./navbar";
 import WhatsappButton from "./WhatsappButton";
+import CurrencyHydrator from "./CurrencyHydrator";
 
 export default function ClientLayout({
   children,
@@ -20,6 +21,7 @@ export default function ClientLayout({
 
   return (
     <>
+      <CurrencyHydrator />
       {!isAdmin && !isVerify && <Navbar initialLogo={logo} />}
       {children}
       {!isAdmin && !isVerify && footer}

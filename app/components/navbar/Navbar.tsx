@@ -9,18 +9,21 @@ import DesktopNav from "./DesktopNav";
 import MobileMenu from "./MobileMenu";
 import { useCartStore } from "../../store/cartStore";
 import { useCompanyStore } from "../../store/companyStore";
-import RiyalIcon from "../RiyalIcon";
+import CurrencyIcon from "../CurrencyIcon";
+import { useCurrency } from "../../hooks/useCurrency";
+import CountrySelector from "./CountrySelector";
 
 export default function Navbar({ initialLogo }: { initialLogo?: string }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [results, setResults] = useState<{ _id: string; name: string; images?: string[]; image?: string; salePrice?: number; originalPrice?: number; price?: number }[]>([]);
+  const [results, setResults] = useState<{ _id: string; name: string; images?: string[]; image?: string; salePrice?: number; originalPrice?: number; price?: number; countryPrices?: Record<string, { originalPrice: number; salePrice?: number | null }> }[]>([]);
   const [searching, setSearching] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchWrapRef = useRef<HTMLDivElement>(null);
   const itemCount = useCartStore((s) => s.items.reduce((sum, i) => sum + i.qty, 0));
   const { logo: storeLogo, setLogo } = useCompanyStore();
+  const { format: formatPrice, getPrice, currency } = useCurrency();
   const logo = storeLogo || initialLogo || "";
 
   const API_IMG = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -117,6 +120,7 @@ export default function Navbar({ initialLogo }: { initialLogo?: string }) {
 
           {/* Icons */}
           <div className="flex items-center gap-0.5 sm:gap-2 md:gap-3">
+            <CountrySelector />
             <button
               aria-label="بحث"
               className="p-1.5 sm:p-2 text-[#0B43FD] hover:text-[#4f8bff] hover:bg-[#0B43FD]/8 rounded-full transition-colors"
@@ -163,7 +167,6 @@ export default function Navbar({ initialLogo }: { initialLogo?: string }) {
             <ul className="absolute right-4 left-4 bg-white border border-gray-200 rounded-xl shadow-lg mt-1 z-50 max-h-72 overflow-y-auto">
               {results.map((p) => {
                 const img = p.images?.[0] || p.image;
-                const price = p.salePrice ?? p.originalPrice ?? p.price ?? 0;
                 return (
                   <li key={p._id}>
                     <Link
@@ -173,9 +176,16 @@ export default function Navbar({ initialLogo }: { initialLogo?: string }) {
                     >
                       {img && (
                         <Image src={resolveImg(img)} alt={p.name} width={40} height={40} className="object-contain rounded" unoptimized />
-                      )}
-                      <span className="flex-1 text-sm text-gray-800 line-clamp-1">{p.name}</span>
-                      <span className="text-sm font-bold text-red-600 shrink-0 flex items-center gap-0.5">{price.toLocaleString("en-US")} <RiyalIcon className="inline w-[11px] h-[11px] align-middle" color="#0874ED" /></span>
+                      )}                      <span className="flex-1 text-sm text-gray-800 line-clamp-1">{p.name}</span>
+                      <span className="text-sm font-bold text-red-600 shrink-0 flex items-center gap-0.5">
+                        {(() => {
+                          const cp = p.countryPrices?.[currency];
+                          const displayPrice = cp
+                            ? (cp.salePrice ?? cp.originalPrice)
+                            : (p.salePrice ?? p.originalPrice ?? p.price ?? 0);
+                          return <>{formatPrice(displayPrice)} <CurrencyIcon className="inline w-[11px] h-[11px] align-middle" color="#0874ED" /></>;
+                        })()}
+                      </span>
                     </Link>
                   </li>
                 );

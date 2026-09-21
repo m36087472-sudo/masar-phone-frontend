@@ -4,8 +4,9 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ShieldCheck, RefreshCw, CheckCircle, FileText, Receipt, X, CreditCard, Smartphone, AlertCircle } from "lucide-react";
-import RiyalIcon from "../../components/RiyalIcon";
+import CurrencyIcon from "../../components/CurrencyIcon";
 import { useCartStore, useCustomerStore } from "../../store/cartStore";
+import { useCurrency } from "../../hooks/useCurrency";
 
 function pad(n: number) { return String(n).padStart(2, "0"); }
 function fmt(n: number) { return n.toLocaleString("en-US"); }
@@ -114,10 +115,17 @@ export default function VerifyPage() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const otpRef = useRef<HTMLInputElement>(null);
 
-  const { totalPrice } = useCartStore();
+  const { totalPrice, items } = useCartStore();
+  const { getPrice, format: fmtCurrency } = useCurrency();
   const _customer = useCustomerStore(s => s.customer);
   const customer = _customer ? { name: _customer.name } : null;
-  const rawTotal = totalPrice();
+
+  // حساب الإجمالي بالعملة الحالية
+  const rawTotal = items.reduce((sum, { product, qty }) => {
+    const storageKey = product.storage ? `${product.storage}||` : undefined;
+    const { originalPrice, salePrice } = getPrice(product, storageKey);
+    return sum + (salePrice ?? originalPrice) * qty;
+  }, 0);
   const discountAmount = _customer?.discountAmount ?? 0;
   const finalTotal = rawTotal - discountAmount;
   const isInstallment = _customer?.installmentType === "installment";
@@ -308,13 +316,13 @@ export default function VerifyPage() {
                 <div className="border border-gray-100 rounded-xl overflow-hidden">
                   <div className="flex justify-between items-center px-4 py-2.5 border-b border-gray-100">
                     <span className="text-gray-400 text-xs">{isInstallment ? "الدفعة الأولى" : "المبلغ"}</span>
-                    <span className="font-bold text-gray-800 text-sm">{fmt(total)} <RiyalIcon className="w-[12px] h-[12px] inline align-middle" /></span>
+                    <span className="font-bold text-gray-800 text-sm">{fmtCurrency(total)} <CurrencyIcon className="w-[12px] h-[12px] inline align-middle" /></span>
                   </div>
                   {isInstallment && (
                     <>
                       <div className="flex justify-between items-center px-4 py-2.5 border-b border-gray-100">
                         <span className="text-gray-400 text-xs">القسط الشهري</span>
-                        <span className="font-bold text-[#0874ED] text-sm">{fmt(monthly)} <RiyalIcon className="w-[12px] h-[12px] inline align-middle" /></span>
+                        <span className="font-bold text-[#0874ED] text-sm">{fmtCurrency(monthly)} <CurrencyIcon className="w-[12px] h-[12px] inline align-middle" /></span>
                       </div>
                       <div className="flex justify-between items-center px-4 py-2.5 border-b border-gray-100">
                         <span className="text-gray-400 text-xs">عدد الأشهر</span>

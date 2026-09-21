@@ -2,6 +2,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import CountryPricesSection, {
+  type CountryPricesMap,
+  dbPricesToFormMap,
+  formMapToPayload,
+} from "../../../components/CountryPricesSection";
 
 export default function EditProductPage() {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +26,7 @@ export default function EditProductPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
+  const [countryPrices, setCountryPrices] = useState<CountryPricesMap>({});
   const imageInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
@@ -40,6 +46,10 @@ export default function EditProductPage() {
         setCurrentImage(p.image || "");
         if (p.images?.length) {
           setGallery(p.images.map((url: string) => ({ mode: "existing" as const, url })));
+        }
+        // Load country prices
+        if (p.countryPrices) {
+          setCountryPrices(dbPricesToFormMap(p.countryPrices));
         }
       })
       .catch(() => toast.error("فشل تحميل المنتج"))
@@ -115,6 +125,12 @@ export default function EditProductPage() {
       });
       if (galleryUrls.length) fd.append("galleryUrls", JSON.stringify(galleryUrls));
       fd.append("hasGallery", "true");
+
+      // Country prices
+      const cpPayload = formMapToPayload(countryPrices);
+      if (Object.keys(cpPayload).length > 0) {
+        fd.append("countryPrices", JSON.stringify(cpPayload));
+      }
 
       const res = await fetch(`/api/admin/products/${id}`, {
         method: "PUT",
@@ -282,6 +298,14 @@ export default function EditProductPage() {
         <label className="block text-sm font-medium text-gray-700 mb-1">الوصف</label>
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="وصف المنتج..." rows={4} className={inputCls + " resize-none"} />
       </div>
+
+      {/* Country Prices */}
+      <CountryPricesSection
+        prices={countryPrices}
+        onChange={setCountryPrices}
+        sarOriginalPrice={originalPrice}
+        productId={id}
+      />
 
       {/* Actions */}
       <div className="flex gap-3 pt-2">

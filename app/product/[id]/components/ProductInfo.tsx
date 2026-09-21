@@ -12,7 +12,8 @@ import {
 import type { Product } from "../../../components/products/types";
 import { useCartStore } from "../../../store/cartStore";
 import InstallmentCalculator from "./InstallmentCalculator";
-import RiyalIcon from "../../../components/RiyalIcon";
+import CurrencyIcon from "../../../components/CurrencyIcon";
+import { useCurrency } from "../../../hooks/useCurrency";
 
 const fmt = (n: number) => n.toLocaleString("en-US");
 
@@ -27,20 +28,21 @@ interface Props {
 export default function ProductInfo({ product, selectedColor, selectedStorage, onColorChange, onStorageChange }: Props) {
   const router = useRouter();
   const addItem = useCartStore((s) => s.addItem);
+  const { format, getPrice } = useCurrency();
   const [added, setAdded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [popup, setPopup] = useState(false);
 
   const { brand, taxIncluded, installment, freeDelivery, inStock } = product;
-  const purchasable = product.purchasable !== false; // default true for existing products
+  const purchasable = product.purchasable !== false;
   const baseName = product.name.split("،")[0].trim();
 
   const activeVariant = product.variants?.find((v) => v.color === selectedColor);
   const storageOpts = activeVariant?.storageOptions ?? product.variants?.[0]?.storageOptions ?? [];
   const activeStorageOpt = storageOpts.find((o) => `${o.storage}|${o.ram ?? ""}|${o.size ?? ""}` === selectedStorage) ?? storageOpts.find((o) => o.storage === selectedStorage) ?? storageOpts[0];
 
-  const originalPrice = activeStorageOpt?.originalPrice ?? product.originalPrice ?? 0;
-  const salePrice = activeStorageOpt?.salePrice ?? product.salePrice;
+  // Get country-aware price
+  const { originalPrice, salePrice, available } = getPrice(product, selectedStorage || undefined);
   const hasDiscount = salePrice != null && salePrice !== originalPrice;
   const savings = hasDiscount ? originalPrice - (salePrice ?? 0) : 0;
   const discountPct = hasDiscount ? Math.round((savings / originalPrice) * 100) : 0;
@@ -57,7 +59,7 @@ export default function ProductInfo({ product, selectedColor, selectedStorage, o
         color: selectedColor || product.color,
         storage: selectedStorage || product.storage,
         originalPrice,
-        salePrice,
+        salePrice: salePrice ?? undefined,
         image: activeVariant?.images?.[0] ?? product.image,
         images: activeVariant?.images?.length ? activeVariant.images : product.images,
       });
@@ -199,17 +201,23 @@ export default function ProductInfo({ product, selectedColor, selectedStorage, o
               transition={{ duration: 0.2 }}
               className="flex items-center gap-2 flex-wrap"
             >
-              <span className="text-2xl font-black text-gray-900 leading-none">
-                {fmt(salePrice ?? originalPrice)}
-              </span>
-              <RiyalIcon className="w-[14px] h-[14px] inline align-middle" />
-              {hasDiscount && (
+              {available ? (
                 <>
-                  <span className="text-[11px] text-gray-400 line-through">{fmt(originalPrice)}</span>
-                  <span className="text-[10px] font-black text-white bg-red-500 px-1.5 py-0.5 rounded-md">
-                    -{discountPct}%
+                  <span className="text-2xl font-black text-gray-900 leading-none">
+                    {format(salePrice ?? originalPrice)}
                   </span>
+                  <CurrencyIcon className="w-[14px] h-[14px] inline align-middle" />
+                  {hasDiscount && (
+                    <>
+                      <span className="text-[11px] text-gray-400 line-through">{format(originalPrice)}</span>
+                      <span className="text-[10px] font-black text-white bg-red-500 px-1.5 py-0.5 rounded-md">
+                        -{discountPct}%
+                      </span>
+                    </>
+                  )}
                 </>
+              ) : (
+                <span className="text-sm font-bold text-gray-400">غير متاح في دولتك</span>
               )}
             </motion.div>
           </AnimatePresence>
@@ -226,7 +234,7 @@ export default function ProductInfo({ product, selectedColor, selectedStorage, o
             <div className="flex items-center gap-2 bg-[#f7fdf0] rounded-xl px-3 py-2 border border-[#7CC043]/20">
               <IoFlash size={12} className="text-[#5a9030] shrink-0" />
               <p className="text-[11px] font-black text-[#3d6b1a]">
-                تقسيط متاح {installment.downPayment ? <>• مقدم {fmt(installment.downPayment)} <RiyalIcon className="w-[11px] h-[11px] inline align-middle" /></> : ""}
+                تقسيط متاح {installment.downPayment ? <>• مقدم {format(installment.downPayment)} <CurrencyIcon className="w-[11px] h-[11px] inline align-middle" /></> : ""}
               </p>
             </div>
           )}

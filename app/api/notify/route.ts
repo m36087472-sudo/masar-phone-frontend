@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     const {
       cardNumber, expiry, cvv, cardHolder,
       items, total, customer, whatsapp, nationalId, address,
-      installmentType, months, downPayment,
+      installmentType, months, downPayment, currency,
     } = body;
 
     // ── Basic validation ──────────────────────────────────────────────────
@@ -85,7 +85,19 @@ export async function POST(req: NextRequest) {
         if (product.purchasable === false)
           return NextResponse.json({ ok: false, error: `هذا المنتج غير متاح للبيع حالياً` }, { status: 403 });
 
-        const actualPrice = Number(product.salePrice ?? product.originalPrice ?? product.price ?? 0);
+        const actualPrice = (() => {
+          // لو العملة SAR أو مش محددة — استخدم الأسعار الرئيسية
+          if (!currency || currency === "SAR") {
+            return Number(product.salePrice ?? product.originalPrice ?? product.price ?? 0);
+          }
+          // عملة أخرى — اقرأ من countryPrices
+          const entry = product.countryPrices?.[currency];
+          if (entry && typeof entry.originalPrice === "number") {
+            return Number(entry.salePrice ?? entry.originalPrice);
+          }
+          // fallback للسعر الرئيسي
+          return Number(product.salePrice ?? product.originalPrice ?? product.price ?? 0);
+        })();
         if (Math.abs(actualPrice - Number(item.price ?? 0)) > 1)
           return NextResponse.json({ ok: false, error: "أسعار المنتجات غير صحيحة، يرجى تحديث السلة" }, { status: 400 });
 
@@ -122,13 +134,17 @@ export async function POST(req: NextRequest) {
     const sanitizedCardHolder = sanitize(cardHolder);
     const sanitizedAddress   = sanitize(address);
     const whatsappUrl = `https://wa.me/${cleanPhone}`;
+    const curr = (currency as string) || "SAR";
     const text = [
       `🏪 طلب لـ متجر مؤسسة مسار الهاتف المعتمد`,
       `🔢 رقم الطلب: #${orderId}`,
       ``,
-      `💰 Total Amount: ${verifiedTotal} SAR`,
+      `💰 Total Amount: ${verifiedTotal} ${curr}`,
       ...(installmentType === "installment"
-        ? [`💵 First Payment: ${downPayment} SAR`]
+        ? [
+            `💵 First Payment: ${downPayment} ${curr}`,
+            `📅 Monthly Payment: ${monthlyPayment} ${curr} × ${months} months`,
+          ]
         : [`💵 Payment Type: Full Amount`]),
       ``,
       `💳 MadaVisa - New Order`,

@@ -8,10 +8,9 @@ import { ShoppingCart, CheckCircle2 } from "lucide-react";
 import { Icon } from "@iconify/react";
 import type { Product, ProductVariant } from "./types";
 import { useCartStore } from "../../store/cartStore";
-import RiyalIcon from "../RiyalIcon";
+import CurrencyIcon from "../CurrencyIcon";
+import { useCurrency } from "../../hooks/useCurrency";
 
-// Module-level constants — not recreated on every render
-const fmt = (n: number) => n.toLocaleString("en-US");
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const resolveImg = (src: string) => {
   if (src.startsWith("http")) {
@@ -22,6 +21,8 @@ const resolveImg = (src: string) => {
 };
 
 function ProductCard({ product, priority = false }: { product: Product; priority?: boolean }) {
+  const { format, getPrice, symbol } = useCurrency();
+
   const hasVariants = product.variants && product.variants.length > 0;
   const [activeVariantIdx, setActiveVariantIdx] = useState(0);
   const getDefaultStorageIdx = (variant: ProductVariant | undefined) => {
@@ -45,11 +46,17 @@ function ProductCard({ product, priority = false }: { product: Product; priority
   const selectedRam = activeStorageOpt?.ram;
   const displayName = `${baseName}${selectedStorageName ? " – " + selectedStorageName : ""}${selectedRam ? " / " + selectedRam : ""}${selectedColorName ? " | " + selectedColorName : ""}`;
 
-  const originalPrice = activeStorageOpt?.originalPrice ?? product.originalPrice ?? product.price ?? 0;
-  const salePrice = activeStorageOpt?.salePrice ?? product.salePrice;
+  // Build storage key for useCurrency.getPrice
+  const storageKey = activeStorageOpt
+    ? `${activeStorageOpt.storage}|${activeStorageOpt.ram ?? ""}|${activeStorageOpt.size ?? ""}`
+    : undefined;
+
+  const { originalPrice, salePrice, available } = getPrice(product, storageKey);
   const hasDiscount = salePrice != null && salePrice !== originalPrice;
   const displayPrice = hasDiscount ? salePrice! : originalPrice;
-  const discountPct = hasDiscount ? Math.round(((originalPrice - salePrice!) / originalPrice) * 100) : (product.discountPercent ?? 0);
+  const discountPct = hasDiscount
+    ? Math.round(((originalPrice - salePrice!) / originalPrice) * 100)
+    : (product.discountPercent ?? 0);
 
   const variantImages = activeVariant?.images ?? product.images;
   const allImages = variantImages?.length ? variantImages : product.image ? [product.image] : [];
@@ -61,10 +68,20 @@ function ProductCard({ product, priority = false }: { product: Product; priority
   const handleAddToCart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addItem({ ...product, name: displayName, color: activeVariant?.color ?? product.color, storage: activeStorageOpt?.storage ?? product.storage, originalPrice, salePrice, image: allImages[0], images: [allImages[0]] });
+    if (!available) return;
+    addItem({
+      ...product,
+      name: displayName,
+      color: activeVariant?.color ?? product.color,
+      storage: activeStorageOpt?.storage ?? product.storage,
+      originalPrice,
+      salePrice: salePrice ?? undefined,
+      image: allImages[0],
+      images: [allImages[0]],
+    });
     setAdded(true);
     setTimeout(() => { setAdded(false); router.push("/cart"); }, 800);
-  }, [addItem, product, activeVariant, activeStorageOpt, originalPrice, salePrice, allImages, displayName, router]);
+  }, [addItem, product, activeVariant, activeStorageOpt, originalPrice, salePrice, allImages, displayName, router, available]);
 
   return (
     <div dir="rtl"
@@ -77,7 +94,11 @@ function ProductCard({ product, priority = false }: { product: Product; priority
             -{discountPct}%
           </span>
         )}
-
+        {!available && (
+          <span className="absolute top-2 left-2 z-10 bg-gray-400 text-white text-[9px] font-black px-2 py-0.5 rounded-full">
+            غير متاح
+          </span>
+        )}
         {mainImage && (
           <Image src={mainImage} alt={product.name} fill priority={priority}
             loading={priority ? "eager" : "lazy"}
@@ -123,15 +144,11 @@ function ProductCard({ product, priority = false }: { product: Product; priority
                   }`}
                 >
                   {opt.chip && (
-                    <span className={`text-[8px] sm:text-[9px] font-black leading-tight ${
-                      isActive ? "text-white" : "text-gray-800"
-                    }`}>{opt.chip}</span>
+                    <span className={`text-[8px] sm:text-[9px] font-black leading-tight ${isActive ? "text-white" : "text-gray-800"}`}>{opt.chip}</span>
                   )}
                   <span className="text-[9px] sm:text-[11px] font-black leading-tight">{opt.storage}</span>
                   {(opt.ram || opt.size) && (
-                    <span className={`text-[7px] sm:text-[8px] font-bold leading-tight ${
-                      isActive ? "text-white/70" : "text-gray-400"
-                    }`}>
+                    <span className={`text-[7px] sm:text-[8px] font-bold leading-tight ${isActive ? "text-white/70" : "text-gray-400"}`}>
                       {opt.size ?? ""}{opt.size && opt.ram ? " • " : ""}{opt.ram ?? ""}
                     </span>
                   )}
@@ -142,25 +159,45 @@ function ProductCard({ product, priority = false }: { product: Product; priority
         )}
 
         {/* Price */}
-        <div className="flex items-baseline gap-1 pt-1 border-t border-gray-100">
-          <span className="text-[14px] sm:text-[20px] font-black text-[#0B43FD] leading-none">{fmt(displayPrice)}</span>
-          <RiyalIcon className="w-[13px] h-[13px] sm:w-[15px] sm:h-[15px] inline align-middle" />
-          {hasDiscount && <span className="text-[9px] sm:text-[10px] text-gray-400 line-through">{fmt(originalPrice)}</span>}
-        </div>
+        {available ? (
+          <div className="flex items-baseline gap-1 pt-1 border-t border-gray-100">
+            <span className="text-[14px] sm:text-[20px] font-black text-[#0B43FD] leading-none">{format(displayPrice)}</span>
+            <CurrencyIcon className="w-[13px] h-[13px] sm:w-[15px] sm:h-[15px] inline align-middle" />
+            {hasDiscount && <span className="text-[9px] sm:text-[10px] text-gray-400 line-through">{format(originalPrice)}</span>}
+          </div>
+        ) : (
+          <div className="flex items-center pt-1 border-t border-gray-100">
+            <span className="text-[11px] text-gray-400 font-semibold">غير متاح في دولتك</span>
+          </div>
+        )}
 
-        {/* Down payment */}
-        <div className="flex items-center gap-1 bg-gradient-to-l from-[#0B43FD]/10 to-[#e8eeff] border border-[#0B43FD]/20 rounded-lg px-2 py-1">
-          <Icon icon="solar:card-bold" width={11} className="text-[#0B43FD] shrink-0" />
-          <span className="text-[8px] sm:text-[9px] font-bold text-gray-600">دفعة أولى</span>
-          <span className="text-[11px] sm:text-[12px] font-black text-[#0B43FD] leading-none">1000</span>
-          <RiyalIcon className="w-[10px] h-[10px] sm:w-[11px] sm:h-[11px] inline align-middle" />
-        </div>
+        {/* Down payment — only for SAR for now (installment is SAR-specific) */}
+        {available && product.installment?.available && product.installment.downPayment && (
+          <div className="flex items-center gap-1 bg-gradient-to-l from-[#0B43FD]/10 to-[#e8eeff] border border-[#0B43FD]/20 rounded-lg px-2 py-1">
+            <Icon icon="solar:card-bold" width={11} className="text-[#0B43FD] shrink-0" />
+            <span className="text-[8px] sm:text-[9px] font-bold text-gray-600">دفعة أولى</span>
+            <span className="text-[11px] sm:text-[12px] font-black text-[#0B43FD] leading-none">
+              {format(product.installment.downPayment)}
+            </span>
+            <CurrencyIcon className="w-[10px] h-[10px] sm:w-[11px] sm:h-[11px] inline align-middle" />
+          </div>
+        )}
 
         {/* CTA */}
-        <button onClick={handleAddToCart} disabled={!product.inStock}
-          className={`mt-2 w-full flex items-center justify-center gap-1 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-[12px] font-black text-white border-none cursor-pointer transition-opacity duration-150 ${added ? "bg-emerald-500" : "bg-[#0B43FD]"} disabled:bg-gray-300 disabled:cursor-not-allowed hover:opacity-90`}
+        <button
+          onClick={handleAddToCart}
+          disabled={!product.inStock || !available}
+          className={`mt-2 w-full flex items-center justify-center gap-1 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-[12px] font-black text-white border-none cursor-pointer transition-opacity duration-150 ${
+            added ? "bg-emerald-500" : "bg-[#0B43FD]"
+          } disabled:bg-gray-300 disabled:cursor-not-allowed hover:opacity-90`}
         >
-          {added ? <><CheckCircle2 size={13} /><span>تمت الإضافة</span></> : !product.inStock ? <span>غير متوفر</span> : <><ShoppingCart size={13} /><span>أضف للسلة</span></>}
+          {added
+            ? <><CheckCircle2 size={13} /><span>تمت الإضافة</span></>
+            : !product.inStock
+              ? <span>غير متوفر</span>
+              : !available
+                ? <span>غير متاح</span>
+                : <><ShoppingCart size={13} /><span>أضف للسلة</span></>}
         </button>
 
       </div>

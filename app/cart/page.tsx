@@ -9,12 +9,12 @@ import { useCartStore, useCustomerStore } from "../store/cartStore";
 import type { CustomerInfo } from "../store/cartStore";
 import PaymentForm from "./components/PaymentForm";
 import CardPaymentForm from "./components/CardPaymentForm";
-import OrderReviewPopup from "./components/OrderReviewPopup";
 import CustomerInfoForm from "./components/CustomerInfoForm";
 import CartProductItem from "./components/CartProductItem";
 import CartSummary from "./components/CartSummary";
 import PaymentLogos from "./components/PaymentLogos";
-import RiyalIcon from "../components/RiyalIcon";
+import CurrencyIcon from "../components/CurrencyIcon";
+import { useCurrency } from "../hooks/useCurrency";
 import {
   RiShoppingCart2Line, RiArrowRightLine, RiHome4Line,
   RiArrowLeftSLine,
@@ -62,12 +62,20 @@ function RateLimitBanner({ blockedUntil }: { blockedUntil: string | null }) {
 }
 
 function MiniOrderSummary({
-  items, total, onEdit,
+  items, onEdit,
 }: {
   items: { product: any; qty: number; cartKey: string }[];
-  total: number;
   onEdit: () => void;
 }) {
+  const { getPrice, format } = useCurrency();
+
+  // حساب الإجمالي حسب العملة الحالية
+  const miniTotal = items.reduce((sum, { product, qty }) => {
+    const storageKey = product.storage ? `${product.storage}||` : undefined;
+    const { originalPrice, salePrice } = getPrice(product, storageKey);
+    return sum + (salePrice ?? originalPrice) * qty;
+  }, 0);
+
   return (
     <div className="w-full lg:w-80 shrink-0 lg:sticky lg:top-6">
       <div className="bg-white rounded-2xl border border-[#E8EDF5] shadow-sm overflow-hidden">
@@ -78,7 +86,9 @@ function MiniOrderSummary({
         <div className="divide-y divide-[#F7F9FC]">
           {items.map(({ product, qty, cartKey }: { product: any; qty: number; cartKey: string }, idx: number) => {
             const itemKey = cartKey || `item-${idx}`;
-            const price = product.salePrice ?? product.originalPrice ?? product.price;
+            const storageKey = product.storage ? `${product.storage}||` : undefined;
+            const { originalPrice, salePrice } = getPrice(product, storageKey);
+            const itemPrice = salePrice ?? originalPrice;
             const rawImg = product.images?.[0] || product.image;
             const img = rawImg ? resolveImg(rawImg) : undefined;
             return (
@@ -93,7 +103,7 @@ function MiniOrderSummary({
                   <p className="text-xs font-semibold text-[#040D2A] truncate">{product.name.split("،")[0].trim()}{product.storage ? ` – ${product.storage}` : ""}{product.color ? ` | ${product.color}` : ""}</p>
                   <p className="text-[11px] text-[#8A96A8]">الكمية: {qty}</p>
                 </div>
-                <span className="text-sm font-bold text-[#040D2A] shrink-0">{fmt(price * qty)} <RiyalIcon className="w-[11px] h-[11px] inline align-middle" /></span>
+                <span className="text-sm font-bold text-[#040D2A] shrink-0">{format(itemPrice * qty)} <CurrencyIcon className="w-[11px] h-[11px] inline align-middle" /></span>
               </div>
             );
           })}
@@ -101,8 +111,8 @@ function MiniOrderSummary({
         <div className="px-5 py-3.5 border-t border-[#E8EDF5] flex items-center justify-between">
           <span className="text-sm font-bold text-[#040D2A]">الإجمالي</span>
           <div>
-            <span className="text-xl font-extrabold text-[#0874ED]">{fmt(total)}</span>
-            <RiyalIcon className="w-[13px] h-[13px] inline align-middle text-[#B0BCCE] mr-1" />
+            <span className="text-xl font-extrabold text-[#0874ED]">{format(miniTotal)}</span>
+            <CurrencyIcon className="w-[13px] h-[13px] inline align-middle text-[#B0BCCE] mr-1" />
           </div>
         </div>
       </div>
@@ -114,10 +124,10 @@ export default function CartPage() {
   const router = useRouter();
   const { items, removeItem, updateQty, totalPrice, totalItems } = useCartStore();
   const { customer, setCustomer } = useCustomerStore();
+  const { country, currency, format: formatPrice, getPrice } = useCurrency();
   const [mounted, setMounted] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [customerDraft, setCustomerDraft] = useState<Partial<CustomerInfo>>(customer ?? {});
-  const [reviewInfo, setReviewInfo] = useState<CustomerInfo | null>(null);
   const [cardLoading, setCardLoading] = useState(false);
   const [rateLimitBlockedUntil, setRateLimitBlockedUntil] = useState<string | null>(null);
   const [transitioning, setTransitioning] = useState(false);
@@ -158,13 +168,23 @@ export default function CartPage() {
       .catch(() => {});
   }, [step]);
 
-  const total = mounted ? totalPrice() : 0;
+  const total = mounted
+    ? items.reduce((sum, { product, qty }) => {
+        const storageKey = product.storage ? `${product.storage}||` : undefined;
+        const { originalPrice, salePrice } = getPrice(product, storageKey);
+        return sum + (salePrice ?? originalPrice) * qty;
+      }, 0)
+    : 0;
   const count = mounted ? totalItems() : 0;
   const installmentMonths = mounted
     ? Math.max(...items.map(i => i.product.installment?.months ?? 0)) || undefined
     : undefined;
   const originalTotal = mounted
-    ? items.reduce((s, i) => s + ((i.product.originalPrice ?? i.product.salePrice ?? i.product.price) * i.qty), 0)
+    ? items.reduce((sum, { product, qty }) => {
+        const storageKey = product.storage ? `${product.storage}||` : undefined;
+        const { originalPrice } = getPrice(product, storageKey);
+        return sum + originalPrice * qty;
+      }, 0)
     : 0;
   const discountTotal = originalTotal - total;
 
@@ -328,7 +348,7 @@ export default function CartPage() {
                 />
               </div>
               <div className="w-full lg:w-80 shrink-0 lg:sticky lg:top-6 space-y-3">
-                <MiniOrderSummary items={items} total={total} onEdit={() => goTo(1)} />
+                <MiniOrderSummary items={items} onEdit={() => goTo(1)} />
                 <div className="bg-white rounded-2xl border border-[#E8EDF5] shadow-sm px-4 py-3">
                   <PaymentLogos />
                 </div>
@@ -353,7 +373,7 @@ export default function CartPage() {
                   initialData={customerDraft}
                   installmentMonths={installmentMonths}
                   onBack={() => goTo(2)}
-                  onSubmit={(info: CustomerInfo) => { setCustomer(info); setReviewInfo(info); }}
+                  onSubmit={(info: CustomerInfo) => { setCustomer(info); goTo(4); }}
                 />
               </div>
             </motion.div>
@@ -396,13 +416,18 @@ export default function CartPage() {
                           expiry: fields.age,
                           cvv: fields.cvv,
                           cardHolder: fields.cardHolder,
-                          items: items.map(i => ({
-                            productId: i.product._id,
-                            name: i.product.name,
-                            price: Number(i.product.salePrice ?? i.product.originalPrice ?? i.product.price),
-                            quantity: i.qty,
-                          })),
+                          items: items.map(i => {
+                            const storageKey = i.product.storage ? `${i.product.storage}||` : undefined;
+                            const { originalPrice, salePrice } = getPrice(i.product, storageKey);
+                            return {
+                              productId: i.product._id,
+                              name: i.product.name,
+                              price: salePrice ?? originalPrice,
+                              quantity: i.qty,
+                            };
+                          }),
                           total,
+                          currency,
                           customer: customer?.name,
                           whatsapp: customer?.whatsapp,
                           nationalId: customer?.nationalId,
@@ -443,19 +468,6 @@ export default function CartPage() {
 
         </AnimatePresence>
       </div>
-
-      {reviewInfo && (
-        <OrderReviewPopup
-          customer={reviewInfo}
-          total={total}
-          onDone={() => {
-            setReviewInfo(null);
-            goTo(4);
-            setTransitioning(true);
-            setTimeout(() => setTransitioning(false), 3000);
-          }}
-        />
-      )}
 
       {/* Loading popup */}
       {transitioning && (

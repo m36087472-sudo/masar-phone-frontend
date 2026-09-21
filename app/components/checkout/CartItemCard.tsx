@@ -3,8 +3,9 @@
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { RiSubtractLine, RiAddLine, RiDeleteBin6Line } from "react-icons/ri";
+import CurrencyIcon from "../CurrencyIcon";
+import { useCurrency } from "../../hooks/useCurrency";
 
-const fmt = (n: number) => n.toLocaleString("en-US");
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const resolveImg = (src: string) => src.startsWith("http") ? src : `${API}${src}`;
 
@@ -24,6 +25,7 @@ interface CartItemCardProps {
 }
 
 export default function CartItemCard({ product, qty, onUpdateQty, onRemove }: CartItemCardProps) {
+  const { format } = useCurrency();
   const price      = product.salePrice ?? product.originalPrice ?? product.price;
   const hasDiscount = product.salePrice && product.originalPrice && product.salePrice < product.originalPrice;
   const rawImg     = product.images?.[0] || product.image;
@@ -59,10 +61,10 @@ export default function CartItemCard({ product, qty, onUpdateQty, onRemove }: Ca
         <div>
           <h3 className="text-xs sm:text-sm font-medium text-[#040D2A] leading-snug line-clamp-2">{product.name}</h3>
           <div className="flex items-center gap-1.5 mt-1">
-            <span className="text-sm font-bold text-[#0874ED]">{fmt(price)}</span>
-            <span className="text-[11px] text-[#8A96A8]">ريال</span>
+            <span className="text-sm font-bold text-[#0874ED]">{format(price)}</span>
+            <CurrencyIcon className="inline w-[11px] h-[11px] align-middle" color="#0874ED" />
             {hasDiscount && (
-              <span className="text-[11px] text-[#B0BCCE] line-through">{fmt(product.originalPrice!)} ريال</span>
+              <span className="text-[11px] text-[#B0BCCE] line-through">{format(product.originalPrice!)} <CurrencyIcon className="inline w-[9px] h-[9px] align-middle" color="#B0BCCE" /></span>
             )}
           </div>
         </div>
@@ -99,7 +101,7 @@ export default function CartItemCard({ product, qty, onUpdateQty, onRemove }: Ca
           <div className="flex items-center gap-2">
             <div className="text-left">
               <p className="text-[9px] text-[#B0BCCE]">الإجمالي</p>
-              <p className="text-xs font-bold text-[#040D2A]">{fmt(lineTotal)} <span className="text-[10px] font-normal text-[#B0BCCE]">ريال</span></p>
+              <p className="text-xs font-bold text-[#040D2A]">{format(lineTotal)} <CurrencyIcon className="inline w-[10px] h-[10px] align-middle" color="#B0BCCE" /></p>
             </div>
             <button
               onClick={() => onRemove(product._id)}
