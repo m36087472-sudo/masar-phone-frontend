@@ -20,7 +20,7 @@ function toInlineUrl(url: string) {
 export default async function Footer() {
   const c = await getCachedCompany();
 
-  const footerItems: { image: string; linkType: string; link: string; file: string }[] =
+  const footerItems: { number?: string; image: string; linkType: string; link: string; file: string }[] =
     (c.footerItems || []).filter((item: { image: string }) => item.image);
 
   const img1: string = c.img1 || "";
@@ -37,9 +37,9 @@ export default async function Footer() {
   }
 
   const paymentImages = [
-    ...(img1 ? [{ src: img1, href: link1 }] : []),
-    ...(img2 ? [{ src: img2, href: link2 }] : []),
-    ...footerItems.map((item) => ({ src: item.image, href: getHref(item) })),
+    ...(img1 ? [{ src: img1, href: link1, number: c.number1 || "" }] : []),
+    ...(img2 ? [{ src: img2, href: link2, number: c.number2 || "" }] : []),
+    ...footerItems.map((item) => ({ src: item.image, href: getHref(item), number: item.number || "" })),
   ];
 
   const links = [
@@ -157,16 +157,23 @@ export default async function Footer() {
 
         {/* Payment Images */}
         {paymentImages.length > 0 && (
-          <div className="mt-5 flex items-center gap-3 flex-wrap justify-start sm:justify-end">
-            {paymentImages.map(({ src, href }, i) =>
-              href ? (
-                <a key={i} href={href} target="_blank" rel="noreferrer">
-                  <Image src={src} alt={`وسيلة دفع ${i + 1}`} width={65} height={40} className="object-contain" style={{ width: 65, height: 40 }} />
-                </a>
-              ) : (
-                <Image key={i} src={src} alt={`وسيلة دفع ${i + 1}`} width={65} height={40} className="object-contain" style={{ width: 65, height: 40 }} />
-              )
-            )}
+          <div className="mt-5 flex flex-wrap items-start justify-center gap-x-5 gap-y-4 sm:justify-end">
+            {paymentImages.map(({ src, href, number }, i) => (
+              <div key={i} className="flex w-[65px] shrink-0 flex-col items-center gap-1.5 text-center">
+                {href ? (
+                  <a href={href} target="_blank" rel="noreferrer" className="shrink-0">
+                    <Image src={src} alt={`وسيلة دفع ${i + 1}`} width={65} height={40} className="object-contain" style={{ width: 65, height: 40 }} />
+                  </a>
+                ) : (
+                  <Image src={src} alt={`وسيلة دفع ${i + 1}`} width={65} height={40} className="object-contain shrink-0" style={{ width: 65, height: 40 }} />
+                )}
+                {number && (
+                  <span dir="ltr" className="block w-full break-all text-[10px] leading-4 font-medium tabular-nums text-[#040D2A]/70">
+                    {number}
+                  </span>
+                )}
+              </div>
+            ))}
           </div>
         )}
 

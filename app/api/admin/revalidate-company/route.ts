@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   if (!authCheck.ok) {
     return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
   }
-  revalidateTag("company", "no-store");
+  revalidateTag("company", { expire: 0 });
   revalidatePath("/", "layout");
   return NextResponse.json({ revalidated: true });
 }

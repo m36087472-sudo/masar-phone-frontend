@@ -1,4 +1,5 @@
 import { unstable_cache } from "next/cache";
+import { cache } from "react";
 
 const BACKEND = process.env.BACKEND_URL || "http://localhost:5000";
 
@@ -32,20 +33,18 @@ export const getCachedProduct = (id: string) =>
     { revalidate: 300, tags: [`product-${id}`, "products"] }
   )();
 
-// Shared company cache — one source for layout, metadata, product page
-export const getCachedCompany = unstable_cache(
+// Deduplicate within a render only; fetch fresh company data on every request.
+export const getCachedCompany = cache(
   async () => {
     try {
       const res = await fetch(`${BACKEND}/api/admin/company`, {
-        next: { tags: ["company"] },
+        cache: "no-store",
       });
       return res.ok ? res.json() : {};
     } catch {
       return {};
     }
-  },
-  ["company"],
-  { revalidate: 3600, tags: ["company"] }
+  }
 );
 
 export const getCachedBanners = unstable_cache(
