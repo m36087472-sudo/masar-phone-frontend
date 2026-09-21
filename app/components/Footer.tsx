@@ -11,6 +11,12 @@ function ensureAbsolute(url: string) {
   return url.startsWith("http://") || url.startsWith("https://") ? url : `https://${url}`;
 }
 
+function footerImageUrl(src: string) {
+  // Trim empty logo margins before fitting the image into its footer slot.
+  if (!src.startsWith("https://res.cloudinary.com/")) return src;
+  return src.replace("/image/upload/", "/image/upload/e_trim/");
+}
+
 function toInlineUrl(url: string) {
   if (!url) return url;
   const rawUrl = url.replace("/image/upload/", "/raw/upload/").replace(/\/fl_attachment:[^/]+\//, "/");
@@ -162,10 +168,10 @@ export default async function Footer() {
               <div key={i} className="flex w-[65px] shrink-0 flex-col items-center gap-1.5 text-center">
                 {href ? (
                   <a href={href} target="_blank" rel="noreferrer" className="shrink-0">
-                    <Image src={src} alt={`وسيلة دفع ${i + 1}`} width={65} height={40} className="object-contain" style={{ width: 65, height: 40 }} />
+                    <Image src={footerImageUrl(src)} alt={`وسيلة دفع ${i + 1}`} width={65} height={40} className="object-contain" style={{ width: 65, height: 40 }} />
                   </a>
                 ) : (
-                  <Image src={src} alt={`وسيلة دفع ${i + 1}`} width={65} height={40} className="object-contain shrink-0" style={{ width: 65, height: 40 }} />
+                  <Image src={footerImageUrl(src)} alt={`وسيلة دفع ${i + 1}`} width={65} height={40} className="object-contain shrink-0" style={{ width: 65, height: 40 }} />
                 )}
                 {number && (
                   <span dir="ltr" className="block w-full break-all text-[10px] leading-4 font-medium tabular-nums text-[#040D2A]/70">
