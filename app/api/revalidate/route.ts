@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (tag === "home-settings") {
-    revalidateTag("products", "tag");
+    // لا نُبطل cache المنتجات هنا — إعدادات التصنيفات لا تغير بيانات المنتجات
     revalidatePath("/");
   }
   if (tag === "company") {

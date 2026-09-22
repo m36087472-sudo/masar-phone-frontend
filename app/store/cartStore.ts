@@ -20,6 +20,13 @@ export interface CustomerInfo {
   discountCode?: string;
   discountAmount?: number;
   storeInstallment?: boolean;
+  /** Optional map location — only present when customer used the map picker */
+  latitude?: number;
+  longitude?: number;
+  /** "map" = customer confirmed a map pin; "manual" = typed address only */
+  addressSource?: "manual" | "map";
+  /** Reverse-geocoded label from Google Maps (display only) */
+  formattedAddress?: string;
 }
 
 // In-memory only — sensitive customer data is never persisted to localStorage

@@ -435,6 +435,13 @@ export default function CartPage() {
                           installmentType: customer?.installmentType,
                           months: customer?.months,
                           downPayment,
+                          // Location (optional — validated backend-side)
+                          ...(customer?.latitude && customer?.longitude ? {
+                            latitude: customer.latitude,
+                            longitude: customer.longitude,
+                            addressSource: customer.addressSource,
+                            formattedAddress: customer.formattedAddress,
+                          } : {}),
                         }),
                       });
                       if (res.status === 429) {

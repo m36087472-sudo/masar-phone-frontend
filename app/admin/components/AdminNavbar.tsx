@@ -66,14 +66,14 @@ export default function AdminNavbar({ onMenuClick }: { onMenuClick: () => void }
       })
       .catch(() => {});
 
-    // polling كل 60 ثانية للـ orders/count فقط
+    // polling كل 5 دقائق للـ orders/count — تخفيض invocations بنسبة 80%
     const interval = setInterval(() => {
       if (aborted) return;
       fetch("/api/admin/orders/count", { credentials: "include" })
         .then((r) => r.json())
         .then((d) => { if (!aborted) setOrderCount(typeof d?.count === "number" ? d.count : 0); })
         .catch(() => {});
-    }, 60_000);
+    }, 300_000);
 
     return () => {
       aborted = true;

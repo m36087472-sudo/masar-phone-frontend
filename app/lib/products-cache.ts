@@ -33,19 +33,22 @@ export const getCachedProduct = (id: string) =>
     { revalidate: 300, tags: [`product-${id}`, "products"] }
   )();
 
-// Deduplicate within a render only; fetch fresh company data on every request.
-export const getCachedCompany = cache(
+// بيانات الشركة تتغير فقط عند تحديث Admin → cache لمدة ساعة مع revalidation tag
+const _getCachedCompanyBase = unstable_cache(
   async () => {
     try {
-      const res = await fetch(`${BACKEND}/api/admin/company`, {
-        cache: "no-store",
-      });
+      const res = await fetch(`${BACKEND}/api/admin/company`);
       return res.ok ? res.json() : {};
     } catch {
       return {};
     }
-  }
+  },
+  ["company"],
+  { revalidate: 3600, tags: ["company"] }
 );
+
+// cache من React يمنع تكرار الاستدعاء داخل نفس الـ render
+export const getCachedCompany = cache(() => _getCachedCompanyBase());
 
 export const getCachedBanners = unstable_cache(
   async () => {
