@@ -80,7 +80,7 @@ function ProductCard({ product, priority = false }: { product: Product; priority
       images: [allImages[0]],
     });
     setAdded(true);
-    setTimeout(() => { setAdded(false); router.push("/cart"); }, 800);
+    setTimeout(() => { setAdded(false); window.scrollTo(0, 0); router.push("/cart"); }, 800);
   }, [addItem, product, activeVariant, activeStorageOpt, originalPrice, salePrice, allImages, displayName, router, available]);
 
   return (
