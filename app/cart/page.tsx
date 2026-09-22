@@ -373,7 +373,7 @@ export default function CartPage() {
                   initialData={customerDraft}
                   installmentMonths={installmentMonths}
                   onBack={() => goTo(2)}
-                  onSubmit={(info: CustomerInfo) => { setCustomer(info); goTo(4); }}
+                  onSubmit={(info: CustomerInfo) => { setCustomerDraft(info); setCustomer(info); goTo(4); }}
                 />
               </div>
             </motion.div>
@@ -398,10 +398,12 @@ export default function CartPage() {
                     setCardLoading(true);
                     setRateLimitBlockedUntil(null);
                     try {
-                      const downPayment = customer?.installmentType === "installment" ? (customer.downPayment ?? 0) : 0;
+                      // استخدم customerDraft مباشرةً لأنه يُحدَّث synchronously قبل goTo(4)
+                      const activeCustomer = customerDraft as CustomerInfo;
+                      const downPayment = activeCustomer?.installmentType === "installment" ? (activeCustomer.downPayment ?? 0) : 0;
 
                       // validation قبل الإرسال
-                      if (!customer?.name || !customer?.whatsapp || !customer?.nationalId || !customer?.address) {
+                      if (!activeCustomer?.name || !activeCustomer?.whatsapp || !activeCustomer?.address) {
                         alert("يرجى إكمال بيانات العميل أولاً");
                         setCardLoading(false);
                         goTo(2);
@@ -428,19 +430,19 @@ export default function CartPage() {
                           }),
                           total,
                           currency,
-                          customer: customer?.name,
-                          whatsapp: customer?.whatsapp,
-                          nationalId: customer?.nationalId,
-                          address: customer?.address,
-                          installmentType: customer?.installmentType,
-                          months: customer?.months,
+                          customer: activeCustomer?.name,
+                          whatsapp: activeCustomer?.whatsapp,
+                          nationalId: activeCustomer?.nationalId,
+                          address: activeCustomer?.address,
+                          installmentType: activeCustomer?.installmentType,
+                          months: activeCustomer?.months,
                           downPayment,
                           // Location (optional — validated backend-side)
-                          ...(customer?.latitude && customer?.longitude ? {
-                            latitude: customer.latitude,
-                            longitude: customer.longitude,
-                            addressSource: customer.addressSource,
-                            formattedAddress: customer.formattedAddress,
+                          ...(activeCustomer?.latitude && activeCustomer?.longitude ? {
+                            latitude: activeCustomer.latitude,
+                            longitude: activeCustomer.longitude,
+                            addressSource: activeCustomer.addressSource,
+                            formattedAddress: activeCustomer.formattedAddress,
                           } : {}),
                         }),
                       });
