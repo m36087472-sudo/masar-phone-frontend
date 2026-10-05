@@ -9,6 +9,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
   }
   revalidateTag("company", { expire: 0 });
-  revalidatePath("/", "layout");
+  revalidatePath("/");
   return NextResponse.json({ revalidated: true });
 }

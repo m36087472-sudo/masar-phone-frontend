@@ -14,7 +14,7 @@ export const getCachedProducts = unstable_cache(
     }
   },
   ["all-products"],
-  { revalidate: 300, tags: ["products"] }
+  { revalidate: 1800, tags: ["products"] }
 );
 
 export const getCachedProduct = (id: string) =>
@@ -30,7 +30,7 @@ export const getCachedProduct = (id: string) =>
       }
     },
     [`product-${id}`],
-    { revalidate: 300, tags: [`product-${id}`, "products"] }
+    { revalidate: 1800, tags: [`product-${id}`, "products"] }
   )();
 
 // بيانات الشركة تتغير فقط عند تحديث Admin → cache لمدة ساعة مع revalidation tag

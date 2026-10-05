@@ -13,6 +13,11 @@ import CurrencyIcon from "../CurrencyIcon";
 import { useCurrency } from "../../hooks/useCurrency";
 import CountrySelector from "./CountrySelector";
 
+// Module-level constant — API_IMG never changes after build, so no hook needed
+const API_IMG = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const resolveImg = (src: string) =>
+  src.startsWith("http") ? src : `${API_IMG}${src.startsWith("/") ? src : "/" + src}`;
+
 export default function Navbar({ initialLogo }: { initialLogo?: string }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -23,15 +28,8 @@ export default function Navbar({ initialLogo }: { initialLogo?: string }) {
   const searchWrapRef = useRef<HTMLDivElement>(null);
   const itemCount = useCartStore((s) => s.items.reduce((sum, i) => sum + i.qty, 0));
   const { logo: storeLogo, setLogo } = useCompanyStore();
-  const { format: formatPrice, getPrice, currency } = useCurrency();
+  const { format: formatPrice, currency } = useCurrency();
   const logo = storeLogo || initialLogo || "";
-
-  const API_IMG = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-  // Module-level helper inlined as const — avoids re-creation each render
-  const resolveImg = useCallback(
-    (src: string) => src.startsWith("http") ? src : `${API_IMG}${src.startsWith("/") ? src : "/" + src}`,
-    [API_IMG]
-  );
 
   // Seed the store with the SSR logo so admin updates still work
   useEffect(() => {

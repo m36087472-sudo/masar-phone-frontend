@@ -1,11 +1,23 @@
 import type { Metadata } from "next";
 import ProductPageClient from "./ProductPageClient";
-import { getCachedProduct, getCachedCompany } from "../../lib/products-cache";
+import { getCachedProduct, getCachedCompany, getCachedProducts } from "../../lib/products-cache";
 
 const SITE_URL = "https://masarphone.com";
 const BACKEND = process.env.BACKEND_URL || "http://localhost:5000";
 
-export const revalidate = 300;
+export const revalidate = 3600;
+
+export async function generateStaticParams() {
+  try {
+    const products = await getCachedProducts();
+    if (!Array.isArray(products)) return [];
+    return products.slice(0, 30).map((p: { _id?: string }) => ({
+      id: String(p._id),
+    })).filter((param: { id: string }) => param.id && param.id !== "undefined");
+  } catch {
+    return [];
+  }
+}
 
 export async function generateMetadata({
   params,

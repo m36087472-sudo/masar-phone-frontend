@@ -15,6 +15,8 @@ import {
 const BACKEND = process.env.BACKEND_URL || "http://localhost:5000";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://masarphone.com";
 
+export const revalidate = 1800;
+
 export default async function Home() {
   const [products, homeConfig, rawBanners, reviews] = await Promise.all([
     getCachedProducts(),

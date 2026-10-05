@@ -79,6 +79,7 @@ export default function MobileMenu({ items, isOpen, onClose }: MobileMenuProps) 
                         <Link
                           key={`${child.href}-${ci}`}
                           href={child.href}
+                          prefetch={false}
                           className="flex items-center justify-between px-8 py-2.5 text-sm text-gray-600 hover:text-[#0B43FD] hover:bg-[#0B43FD]/8 transition-colors"
                           onClick={onClose}
                         >
@@ -97,6 +98,7 @@ export default function MobileMenu({ items, isOpen, onClose }: MobileMenuProps) 
                     <Link
                       key={`${child.href}-${index}`}
                       href={child.href}
+                      prefetch={false}
                       className="flex items-center justify-between px-8 py-2.5 text-sm text-gray-600 hover:text-[#0B43FD] hover:bg-[#0B43FD]/8 transition-colors"
                       onClick={onClose}
                     >

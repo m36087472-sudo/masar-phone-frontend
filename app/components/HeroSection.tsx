@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
 interface Banner {
@@ -10,11 +10,28 @@ interface Banner {
 export default function HeroSection({ banners }: { banners: Banner[] }) {
   const active = banners;
   const [current, setCurrent] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (active.length <= 1) return;
-    const t = setInterval(() => setCurrent((p) => (p + 1) % active.length), 4000);
-    return () => clearInterval(t);
+
+    const start = () => {
+      if (timerRef.current) return;
+      timerRef.current = setInterval(() => setCurrent((p) => (p + 1) % active.length), 4000);
+    };
+    const stop = () => {
+      if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+    };
+
+    // Pause when tab is hidden — saves CPU when user switches tabs
+    const onVisibility = () => { document.hidden ? stop() : start(); };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    start();
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
   }, [active.length]);
 
   if (!active.length) return null;

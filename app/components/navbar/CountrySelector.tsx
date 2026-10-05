@@ -86,13 +86,7 @@ export default function CountrySelector() {
               : "text-[#0B43FD] hover:bg-[#0B43FD]/8"
           }`}
         >
-          <img
-            src={`https://flagcdn.com/w40/${country.code.toLowerCase()}.png`}
-            alt={country.nameEn}
-            width={20}
-            height={15}
-            className="rounded-sm object-cover shrink-0"
-          />
+          <span className="text-base leading-none" aria-hidden="true">{country.flag}</span>
           <span className="hidden sm:inline">{country.currency}</span>
           <svg
             className={`w-3 h-3 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
@@ -127,15 +121,8 @@ export default function CountrySelector() {
                       : "text-gray-700 hover:bg-gray-50 font-medium"
                   }`}
                 >
-                  {/* صورة العلم */}
-                  <img
-                    src={`https://flagcdn.com/w40/${c.code.toLowerCase()}.png`}
-                    alt={c.nameEn}
-                    width={24}
-                    height={18}
-                    className="rounded-sm object-cover shrink-0"
-                    loading="lazy"
-                  />
+                  {/* علم الدولة كـ emoji — بدون طلب شبكة خارجي */}
+                  <span className="text-xl leading-none shrink-0" aria-hidden="true">{c.flag}</span>
                   <div className="flex-1 text-right">
                     <span className="block text-xs font-semibold leading-tight">{c.nameAr}</span>
                     <span className="block text-[10px] text-gray-400 leading-tight">{c.nameEn}</span>

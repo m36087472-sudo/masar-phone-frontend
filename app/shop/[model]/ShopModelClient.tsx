@@ -34,25 +34,39 @@ function buildPageDots(totalPages: number, page: number): (number | "...")[] {
 
 export default function ShopModelClient({ products, modelName, hero = [] }: Props) {
   const [slideIdx, setSlideIdx] = useState(0);
-  const slides = hero.length > 0 ? hero.filter((s) => !!s.image) : null;
+  // Memoize slides so the reference stays stable across renders
+  const slides = useMemo(
+    () => (hero.length > 0 ? hero.filter((s) => !!s.image) : null),
+    // hero is a server-provided prop that never mutates — eslint-disable-next-line is intentional
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+  const slidesLen = slides?.length ?? 0;
   const heroRef = useRef<HTMLDivElement>(null);
 
   const nextSlide = useCallback(() => {
-    if (!slides) return;
-    setSlideIdx((i) => (i + 1) % slides.length);
-  }, [slides]);
+    if (!slidesLen) return;
+    setSlideIdx((i) => (i + 1) % slidesLen);
+  }, [slidesLen]);
+
+  // Keep intervalId in a ref so start/stop functions share the same reference
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (!slides || slides.length <= 1) return;
-    let intervalId: ReturnType<typeof setInterval> | null = null;
+    if (!slides || slidesLen <= 1) return;
+
+    const start = () => {
+      if (intervalRef.current) return; // already running — don't stack
+      intervalRef.current = setInterval(nextSlide, 4000);
+    };
+    const stop = () => {
+      if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
+    };
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          intervalId = setInterval(nextSlide, 4000);
-        } else {
-          if (intervalId) clearInterval(intervalId);
-        }
+        if (entry.isIntersecting && !document.hidden) start();
+        else stop();
       },
       { threshold: 0.2 }
     );
@@ -60,11 +74,16 @@ export default function ShopModelClient({ products, modelName, hero = [] }: Prop
     const el = heroRef.current;
     if (el) observer.observe(el);
 
+    // Pause when browser tab is hidden — saves CPU
+    const onVisibility = () => { document.hidden ? stop() : start(); };
+    document.addEventListener("visibilitychange", onVisibility);
+
     return () => {
       observer.disconnect();
-      if (intervalId) clearInterval(intervalId);
+      stop();
+      document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [slides, nextSlide]);
+  }, [slides, slidesLen, nextSlide]);
   // ── Filter state ──────────────────────────────────────────────
   const [sortBy, setSortBy] = useState<"default" | "price-asc" | "price-desc" | "discount">("price-asc");
   const [page, setPage] = useState(1);

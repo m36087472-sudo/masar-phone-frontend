@@ -71,19 +71,23 @@ async function lookupIp(ip: string): Promise<string> {
 }
 
 export async function GET(req: NextRequest) {
+  const cacheHeader = {
+    "Cache-Control": "public, s-maxage=86400, max-age=3600, stale-while-revalidate=604800",
+  };
+
   // 1. Platform headers (instant, no network call)
   const fromHeader = resolveFromHeaders(req);
   if (fromHeader) {
-    return NextResponse.json({ countryCode: fromHeader });
+    return NextResponse.json({ countryCode: fromHeader }, { headers: cacheHeader });
   }
 
   // 2. IP lookup (fallback)
   const ip = extractClientIp(req);
   if (ip) {
     const code = await lookupIp(ip);
-    return NextResponse.json({ countryCode: code });
+    return NextResponse.json({ countryCode: code }, { headers: cacheHeader });
   }
 
   // 3. Cannot determine — return default
-  return NextResponse.json({ countryCode: FALLBACK });
+  return NextResponse.json({ countryCode: FALLBACK }, { headers: cacheHeader });
 }

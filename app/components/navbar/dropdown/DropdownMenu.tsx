@@ -12,6 +12,7 @@ function NavLink({ item }: { item: NavChild }) {
   return (
     <Link
       href={item.href}
+      prefetch={false}
       className={item.comingSoon ? "flex items-center justify-between px-4 py-2 text-sm text-gray-700 hover:bg-[#0B43FD]/8 hover:text-[#0B43FD] transition-colors text-right" : "block px-4 py-2 text-sm text-gray-700 hover:bg-[#0B43FD]/8 hover:text-[#0B43FD] transition-colors text-right"}
       suppressHydrationWarning
     >

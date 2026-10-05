@@ -18,9 +18,14 @@ function footerImageUrl(src: string) {
 }
 
 function toInlineUrl(url: string) {
-  if (!url) return url;
-  const rawUrl = url.replace("/image/upload/", "/raw/upload/").replace(/\/fl_attachment:[^/]+\//, "/");
-  return `https://docs.google.com/viewer?url=${encodeURIComponent(rawUrl)}&embedded=false`;
+  if (!url) return "";
+  const trimmed = url.trim();
+  if (trimmed.startsWith("/")) return trimmed;
+  // If it's a Cloudinary URL, proxy it through /api/file-proxy to guarantee standard PDF headers and inline viewing
+  if (trimmed.includes("res.cloudinary.com")) {
+    return `/api/file-proxy?url=${encodeURIComponent(trimmed)}`;
+  }
+  return trimmed;
 }
 
 export default async function Footer() {

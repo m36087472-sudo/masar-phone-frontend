@@ -5,5 +5,9 @@ export async function GET(req: NextRequest) {
   const q = req.nextUrl.searchParams.get("q") || "";
   const brand = req.nextUrl.searchParams.get("brand") || "";
   const data = await searchCachedProducts(q, brand || undefined);
-  return NextResponse.json(data);
+  return NextResponse.json(data, {
+    headers: {
+      "Cache-Control": "public, s-maxage=120, stale-while-revalidate=600",
+    },
+  });
 }

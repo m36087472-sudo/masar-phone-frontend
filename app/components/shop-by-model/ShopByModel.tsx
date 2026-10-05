@@ -1,7 +1,7 @@
 "use client";
 
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination, A11y } from "swiper/modules";
+import { Navigation, Pagination } from "swiper/modules";
 import { HiArrowRight, HiArrowLeft } from "react-icons/hi2";
 import "swiper/css";
 import "swiper/css/pagination";
@@ -51,7 +51,7 @@ export default function ShopByModel() {
 
         {/* Swiper */}
         <Swiper
-          modules={[Navigation, Pagination, A11y]}
+          modules={[Navigation, Pagination]}
           dir="rtl"
           navigation={{
             prevEl: ".swiper-models-prev",

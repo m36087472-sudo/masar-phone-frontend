@@ -22,11 +22,10 @@ html, body {
 body {
   background: #ffffff;
   color: var(--foreground);
-  font-family: 'Almarai', sans-serif;
+  /* Font applied via var(--font-noto-kufi) in layout.tsx <body> style */
 }
 
 body.checkout-page {
-  font-family: 'Almarai', sans-serif !important;
   background: #155E6F !important;
 }
 

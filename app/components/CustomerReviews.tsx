@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Keyboard, Pagination } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
@@ -26,27 +26,33 @@ export default function CustomerReviews({ initialReviews = [] }: { initialReview
   const swiperRef = useRef<SwiperType | null>(null);
   const sectionRef = useRef<HTMLElement | null>(null);
 
-  const handleSwiperInit = (swiper: SwiperType) => {
-    swiperRef.current = swiper;
+  // Pause Swiper autoplay when off-screen or tab is hidden — saves CPU
+  useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
+
+    const pauseIfHidden = () => {
+      if (!swiperRef.current) return;
+      if (document.hidden) swiperRef.current.autoplay.stop();
+      else swiperRef.current.autoplay.start();
+    };
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!swiperRef.current) return;
-        if (entry.isIntersecting) swiperRef.current.autoplay.start();
+        if (entry.isIntersecting && !document.hidden) swiperRef.current.autoplay.start();
         else swiperRef.current.autoplay.stop();
       },
       { threshold: 0.1 }
     );
     observer.observe(el);
-    // Also pause when the browser tab is hidden to save CPU
-    const onVisibilityChange = () => {
-      if (!swiperRef.current) return;
-      if (document.hidden) swiperRef.current.autoplay.stop();
-      else swiperRef.current.autoplay.start();
+    document.addEventListener("visibilitychange", pauseIfHidden);
+
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", pauseIfHidden);
     };
-    document.addEventListener("visibilitychange", onVisibilityChange);
-  };
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -95,7 +101,7 @@ export default function CustomerReviews({ initialReviews = [] }: { initialReview
             keyboard={{ enabled: true }}
             pagination={{ clickable: true }}
             loop={reviews.length > 3}
-            onSwiper={handleSwiperInit}
+            onSwiper={(swiper) => { swiperRef.current = swiper; }}
             className="pb-10!"
           >
             {reviews.map((r) => (

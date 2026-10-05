@@ -30,16 +30,21 @@ export default function CategoryBanner({ category, images }: { category: string;
     // Only run the interval when the banner is visible in the viewport
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) start();
+        if (entry.isIntersecting && !document.hidden) start();
         else stop();
       },
       { threshold: 0.1 }
     );
     observer.observe(el);
 
+    // Pause when tab is hidden — saves CPU
+    const onVisibility = () => { document.hidden ? stop() : start(); };
+    document.addEventListener("visibilitychange", onVisibility);
+
     return () => {
       stop();
       observer.disconnect();
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [images]);
 
