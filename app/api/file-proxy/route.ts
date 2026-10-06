@@ -37,10 +37,17 @@ export async function GET(req: NextRequest) {
     ? "application/pdf"
     : rawContentType;
 
+  const isDownload = req.nextUrl.searchParams.get("download") === "true";
+  const disposition = isDownload
+    ? 'attachment; filename="document.pdf"'
+    : 'inline; filename="document.pdf"';
+
   return new NextResponse(body, {
     headers: {
       "Content-Type": contentType,
-      "Content-Disposition": 'inline; filename="document.pdf"',
+      "Content-Disposition": disposition,
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
       "Cache-Control": "public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400",
     },
   });
