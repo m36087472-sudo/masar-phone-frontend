@@ -19,7 +19,7 @@ export default function FilesPage() {
 
   function openFile(url: string) {
     const rawUrl = url.replace("/image/upload/", "/raw/upload/").replace(/\/fl_attachment:[^/]+\//, "/");
-    const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(rawUrl)}&embedded=false`;
+    const viewerUrl = `/api/file-proxy?url=${encodeURIComponent(rawUrl)}`;
     window.open(viewerUrl, "_blank", "noopener,noreferrer");
   }
   const [imgKeys, setImgKeys] = useState<Record<string, number>>({});

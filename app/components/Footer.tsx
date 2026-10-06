@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { FaWhatsapp, FaPhone, FaEnvelope, FaMapMarkerAlt } from "react-icons/fa";
 import { getCachedCompany } from "../lib/products-cache";
+import FooterPaymentImages, { FooterPaymentImageItem } from "./FooterPaymentImages";
 
 // Pre-computed at build/module level — prevents a dynamic render just for getFullYear()
 const CURRENT_YEAR = new Date().getFullYear();
@@ -9,12 +10,6 @@ const CURRENT_YEAR = new Date().getFullYear();
 function ensureAbsolute(url: string) {
   if (!url) return "";
   return url.startsWith("http://") || url.startsWith("https://") ? url : `https://${url}`;
-}
-
-function footerImageUrl(src: string) {
-  // Trim empty logo margins before fitting the image into its footer slot.
-  if (!src.startsWith("https://res.cloudinary.com/")) return src;
-  return src.replace("/image/upload/", "/image/upload/e_trim/");
 }
 
 function toInlineUrl(url: string) {
@@ -28,30 +23,78 @@ function toInlineUrl(url: string) {
   return trimmed;
 }
 
+function resolveItem(
+  src: string | undefined,
+  number: string | undefined,
+  linkType: string | undefined,
+  linkVal: string | undefined,
+  fileVal: string | undefined,
+  defaultTitle: string
+): FooterPaymentImageItem | null {
+  if (!src) return null;
+  const fileTrimmed = (fileVal || "").trim();
+  const linkTrimmed = (linkVal || "").trim();
+
+  // If the admin chose "file", or if a file is uploaded and link is empty
+  const isFile = linkType === "file" || (!!fileTrimmed && !linkTrimmed);
+
+  if (isFile && fileTrimmed) {
+    return {
+      src,
+      href: toInlineUrl(fileTrimmed),
+      rawUrl: fileTrimmed,
+      isPdf: true,
+      title: defaultTitle,
+      number: number || "",
+    };
+  }
+
+  if (linkTrimmed) {
+    const isDirectPdf = linkTrimmed.toLowerCase().endsWith(".pdf") || linkTrimmed.includes("/docs/");
+    return {
+      src,
+      href: isDirectPdf ? toInlineUrl(linkTrimmed) : ensureAbsolute(linkTrimmed),
+      rawUrl: linkTrimmed,
+      isPdf: isDirectPdf,
+      title: defaultTitle,
+      number: number || "",
+    };
+  }
+
+  if (fileTrimmed) {
+    return {
+      src,
+      href: toInlineUrl(fileTrimmed),
+      rawUrl: fileTrimmed,
+      isPdf: true,
+      title: defaultTitle,
+      number: number || "",
+    };
+  }
+
+  return {
+    src,
+    href: "",
+    rawUrl: "",
+    isPdf: false,
+    title: defaultTitle,
+    number: number || "",
+  };
+}
+
 export default async function Footer() {
   const c = await getCachedCompany();
 
   const footerItems: { number?: string; image: string; linkType: string; link: string; file: string }[] =
     (c.footerItems || []).filter((item: { image: string }) => item.image);
 
-  const img1: string = c.img1 || "";
-  const useFile1 = c.link1Type === "file" || (!!(c.file1 || "").trim() && !(c.link1 || "").trim());
-  const link1: string = useFile1 ? toInlineUrl(c.file1 || "") : ensureAbsolute(c.link1 || "");
-
-  const img2: string = c.img2 || "";
-  const useFile2 = c.link2Type === "file" || (!!(c.file2 || "").trim() && !(c.link2 || "").trim());
-  const link2: string = useFile2 ? toInlineUrl(c.file2 || "") : ensureAbsolute(c.link2 || "");
-
-  function getHref(item: { linkType: string; link: string; file: string }) {
-    const asFile = item.linkType === "file" || (!!(item.file || "").trim() && !(item.link || "").trim());
-    return asFile ? toInlineUrl(item.file) : ensureAbsolute(item.link);
-  }
-
-  const paymentImages = [
-    ...(img1 ? [{ src: img1, href: link1, number: c.number1 || "" }] : []),
-    ...(img2 ? [{ src: img2, href: link2, number: c.number2 || "" }] : []),
-    ...footerItems.map((item) => ({ src: item.image, href: getHref(item), number: item.number || "" })),
-  ];
+  const resolvedImages = [
+    resolveItem(c.img1, c.number1, c.link1Type, c.link1, c.file1, "مركز الأعمال السعودي"),
+    resolveItem(c.img2, c.number2, c.link2Type, c.link2, c.file2, "ضريبة القيمة المضافة"),
+    ...footerItems.map((item, idx) =>
+      resolveItem(item.image, item.number, item.linkType, item.link, item.file, item.number ? `رقم ${item.number}` : `معروف ${idx + 1}`)
+    ),
+  ].filter(Boolean) as FooterPaymentImageItem[];
 
   const links = [
     { label: "عن مسار", href: "/about" },
@@ -166,27 +209,8 @@ export default async function Footer() {
         {/* Divider */}
         <div className="mt-10 border-t border-[#040D2A]/10" />
 
-        {/* Payment Images */}
-        {paymentImages.length > 0 && (
-          <div className="mt-5 flex flex-wrap items-start justify-center gap-x-5 gap-y-4 sm:justify-end">
-            {paymentImages.map(({ src, href, number }, i) => (
-              <div key={i} className="flex w-[65px] shrink-0 flex-col items-center gap-1.5 text-center">
-                {href ? (
-                  <a href={href} target="_blank" rel="noreferrer" className="shrink-0">
-                    <Image src={footerImageUrl(src)} alt={`وسيلة دفع ${i + 1}`} width={65} height={40} className="object-contain" style={{ width: 65, height: 40 }} />
-                  </a>
-                ) : (
-                  <Image src={footerImageUrl(src)} alt={`وسيلة دفع ${i + 1}`} width={65} height={40} className="object-contain shrink-0" style={{ width: 65, height: 40 }} />
-                )}
-                {number && (
-                  <span dir="ltr" className="block w-full break-all text-[10px] leading-4 font-medium tabular-nums text-[#040D2A]/70">
-                    {number}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+        {/* Payment & Certificate Images */}
+        <FooterPaymentImages items={resolvedImages} />
 
         {/* Bottom Bar */}
         <div className="mt-4 pt-4 border-t border-[#040D2A]/10 flex flex-col sm:flex-row items-center justify-between gap-3">
