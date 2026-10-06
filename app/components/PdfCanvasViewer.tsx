@@ -13,7 +13,7 @@ export default function PdfCanvasViewer({ url, title, onClose }: PdfCanvasViewer
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [numPages, setNumPages] = useState<number>(0);
-  const [scale, setScale] = useState<number>(1.2);
+  const [scale, setScale] = useState<number>(1.0);
   const containerRef = useRef<HTMLDivElement>(null);
   const pdfDocRef = useRef<any>(null);
 
@@ -90,6 +90,8 @@ export default function PdfCanvasViewer({ url, title, onClose }: PdfCanvasViewer
 
     async function renderAllPages() {
       const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+      // قياس العرض المتاح الفعلي داخل الحاوية لتجنب تشوه الصفحة
+      const availableWidth = container ? Math.max(container.clientWidth - 32, 280) : 600;
 
       for (let i = 1; i <= pdf.numPages; i++) {
         if (cancelled) break;
@@ -97,16 +99,27 @@ export default function PdfCanvasViewer({ url, title, onClose }: PdfCanvasViewer
           const page = await pdf.getPage(i);
           if (cancelled) break;
 
-          const viewport = page.getViewport({ scale });
+          // حساب الحجم الطبيعي للصفحة
+          const baseViewport = page.getViewport({ scale: 1.0 });
+          // ضبط مقياس العرض ليتناسب تماماً مع الشاشة الحالية ومضروب بنسبة التكبير التي اختارها المستخدم
+          const autoFitScale = Math.min(availableWidth / baseViewport.width, 1.5);
+          const effectiveScale = autoFitScale * scale;
+          const viewport = page.getViewport({ scale: effectiveScale });
+
           const canvas = document.createElement("canvas");
           const context = canvas.getContext("2d");
 
           if (context) {
+            // الحجم الفعلي للبيكسل (HiDPI / Retina display)
             canvas.width = Math.floor(viewport.width * dpr);
             canvas.height = Math.floor(viewport.height * dpr);
-            canvas.style.width = `${Math.floor(viewport.width)}px`;
-            canvas.style.height = `${Math.floor(viewport.height)}px`;
-            canvas.className = "rounded-lg shadow-md bg-white my-3 mx-auto max-w-full block";
+
+            // أبعاد الـ CSS مع تثبيت نسبة العرض إلى الارتفاع لمنع أي انضغاط أو تمطيط نهائياً
+            canvas.style.width = "100%";
+            canvas.style.maxWidth = `${Math.floor(viewport.width)}px`;
+            canvas.style.height = "auto";
+            canvas.style.aspectRatio = `${viewport.width} / ${viewport.height}`;
+            canvas.className = "rounded-lg shadow-lg bg-white my-3 mx-auto block transition-all";
 
             context.scale(dpr, dpr);
 
@@ -127,8 +140,17 @@ export default function PdfCanvasViewer({ url, title, onClose }: PdfCanvasViewer
 
     renderAllPages();
 
+    // إعادة ضبط الحجم تلقائياً عند تدوير الشاشة أو تغيير حجم النافذة
+    const handleResize = () => {
+      if (!cancelled) {
+        renderAllPages();
+      }
+    };
+    window.addEventListener("resize", handleResize);
+
     return () => {
       cancelled = true;
+      window.removeEventListener("resize", handleResize);
     };
   }, [loading, error, numPages, scale]);
 
@@ -178,7 +200,7 @@ export default function PdfCanvasViewer({ url, title, onClose }: PdfCanvasViewer
             </button>
             <button
               type="button"
-              onClick={() => setScale(1.2)}
+              onClick={() => setScale(1.0)}
               disabled={loading || !!error}
               className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition disabled:opacity-40"
               title="إعادة ضبط الحجم"
