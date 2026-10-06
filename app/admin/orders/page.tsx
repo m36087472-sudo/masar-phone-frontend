@@ -54,20 +54,30 @@ export default function OrdersPage() {
   searchRef.current = search;
   statusRef.current = statusFilter;
 
+  const abortCtrlRef = useRef<AbortController | null>(null);
+
   const fetchOrders = useCallback((p: number, q: string, st: string) => {
+    if (abortCtrlRef.current) abortCtrlRef.current.abort();
+    const ctrl = new AbortController();
+    abortCtrlRef.current = ctrl;
+
     setLoading(true);
     const params = new URLSearchParams({ page: String(p), limit: String(LIMIT) });
     if (q)  params.set("q", q);
     if (st) params.set("status", st);
 
-    fetch(`/api/admin/orders?${params}`)
+    fetch(`/api/admin/orders?${params}`, { credentials: "include", signal: ctrl.signal })
       .then((r) => r.json())
       .then((d) => {
         setOrders(Array.isArray(d.orders) ? d.orders : []);
         setTotal(typeof d.total === "number" ? d.total : 0);
       })
-      .catch(() => toast.error("فشل تحميل الطلبات"))
-      .finally(() => setLoading(false));
+      .catch((err) => {
+        if (err.name !== "AbortError") toast.error("فشل تحميل الطلبات");
+      })
+      .finally(() => {
+        if (!ctrl.signal.aborted) setLoading(false);
+      });
   }, []);
 
   // تحميل أولي

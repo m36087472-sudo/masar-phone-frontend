@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getBackend, forwardCookies } from "../../../_lib";
+import { getBackend, forwardCookies, purgeHome } from "../../../_lib";
 
 export async function GET(req: NextRequest) {
   const res = await fetch(`${getBackend()}/api/admin/sub-categories/max`, forwardCookies(req, {}));
@@ -15,5 +15,8 @@ export async function PATCH(req: NextRequest) {
     body: JSON.stringify(body),
   }));
   const data = await res.json();
+  if (res.ok) {
+    purgeHome("home-settings");
+  }
   return NextResponse.json(data, { status: res.status });
 }

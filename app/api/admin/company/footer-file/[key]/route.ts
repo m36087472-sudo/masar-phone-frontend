@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidateTag, revalidatePath } from "next/cache";
-import { getBackend, forwardCookies } from "../../../_lib";
+import { getBackend, forwardCookies, purgeHome } from "../../../_lib";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ key: string }> }) {
   const { key } = await params;
@@ -8,8 +7,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ key
   const res = await fetch(`${getBackend()}/api/admin/company/footer-file/${key}`, forwardCookies(req, { method: "POST", body }));
   const data = await res.json();
   if (res.ok) {
-    revalidateTag("company");
-    revalidatePath("/");
+    purgeHome("company");
   }
   return NextResponse.json(data, { status: res.status });
 }

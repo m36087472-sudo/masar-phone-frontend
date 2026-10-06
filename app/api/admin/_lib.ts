@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { revalidateTag, revalidatePath } from "next/cache";
 
 export function getBackend(): string {
   return (process.env.BACKEND_URL || "http://localhost:5000").replace(/\/$/, "");
@@ -27,3 +28,17 @@ export function forwardCookies(req: NextRequest, init: RequestInit): RequestInit
     },
   };
 }
+
+export function purgeHome(tag?: string) {
+  if (tag) {
+    try {
+      // Next.js 16 expects (tag, profile | { expire?: number })
+      const fn = revalidateTag as (tag: string, profile?: any) => void;
+      fn(tag, { expire: 0 });
+    } catch {}
+  }
+  try {
+    revalidatePath("/");
+  } catch {}
+}
+

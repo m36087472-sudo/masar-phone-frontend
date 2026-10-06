@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getBackend, forwardCookies } from "../../../_lib";
+import { getBackend, forwardCookies, purgeHome } from "../../../_lib";
 
 export async function PATCH(req: NextRequest) {
   const body = await req.json();
@@ -9,5 +9,8 @@ export async function PATCH(req: NextRequest) {
     body: JSON.stringify(body),
   }));
   const data = await res.json();
+  if (res.ok) {
+    purgeHome("home-settings");
+  }
   return NextResponse.json(data, { status: res.status });
 }
