@@ -107,7 +107,7 @@ export default function FilesPage() {
     fd.append("file", file);
     const r = await fetch(`/api/admin/company/footer-file/file1`, { method: "POST", credentials: "include", body: fd });
     const json = await r.json();
-    if (json.url) setData((p) => ({ ...p, file1: json.url }));
+    if (json.url) setData((p) => ({ ...p, file1: json.url, linkType1: "file", link1: "" }));
     setUploading(null);
   }
 
@@ -117,7 +117,7 @@ export default function FilesPage() {
     fd.append("file", file);
     const r = await fetch(`/api/admin/company/footer-file/file2`, { method: "POST", credentials: "include", body: fd });
     const json = await r.json();
-    if (json.url) setData((p) => ({ ...p, file2: json.url }));
+    if (json.url) setData((p) => ({ ...p, file2: json.url, linkType2: "file", link2: "" }));
     setUploading(null);
   }
 
@@ -146,7 +146,7 @@ export default function FilesPage() {
     const json = await r.json();
     if (json.url) setData((p) => {
       const items = [...p.footerItems];
-      items[index] = { ...items[index], file: json.url };
+      items[index] = { ...items[index], file: json.url, linkType: "file", link: "" };
       return { ...p, footerItems: items };
     });
     setUploading(null);

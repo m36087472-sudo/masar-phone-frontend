@@ -18,7 +18,7 @@ export async function PUT(req: NextRequest) {
   }));
   if (!res.ok) return NextResponse.json({ error: "Backend unavailable" }, { status: res.status });
   const data = await res.json();
-  revalidateTag("company", { expire: 0 });
+  revalidateTag("company");
   revalidatePath("/");
   return NextResponse.json(data, { status: res.status });
 }

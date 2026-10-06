@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   const tag = req.nextUrl.searchParams.get("tag") || "products";
   const productId = req.nextUrl.searchParams.get("productId");
 
-  revalidateTag(tag, "tag");
+  revalidateTag(tag);
 
   // When a specific product is updated, revalidate its page path directly
   if (productId) {
