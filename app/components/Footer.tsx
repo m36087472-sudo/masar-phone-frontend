@@ -39,9 +39,10 @@ function resolveItem(
   const isFile = linkType === "file" || (!!fileTrimmed && !linkTrimmed);
 
   if (isFile && fileTrimmed) {
+    const docPageUrl = `/document?file=${encodeURIComponent(fileTrimmed)}&title=${encodeURIComponent(defaultTitle)}`;
     return {
       src,
-      href: toInlineUrl(fileTrimmed),
+      href: docPageUrl,
       rawUrl: fileTrimmed,
       isPdf: true,
       title: defaultTitle,
@@ -51,9 +52,13 @@ function resolveItem(
 
   if (linkTrimmed) {
     const isDirectPdf = linkTrimmed.toLowerCase().endsWith(".pdf") || linkTrimmed.includes("/docs/");
+    const docPageUrl = isDirectPdf
+      ? `/document?file=${encodeURIComponent(linkTrimmed)}&title=${encodeURIComponent(defaultTitle)}`
+      : ensureAbsolute(linkTrimmed);
+
     return {
       src,
-      href: isDirectPdf ? toInlineUrl(linkTrimmed) : ensureAbsolute(linkTrimmed),
+      href: docPageUrl,
       rawUrl: linkTrimmed,
       isPdf: isDirectPdf,
       title: defaultTitle,
@@ -62,9 +67,10 @@ function resolveItem(
   }
 
   if (fileTrimmed) {
+    const docPageUrl = `/document?file=${encodeURIComponent(fileTrimmed)}&title=${encodeURIComponent(defaultTitle)}`;
     return {
       src,
-      href: toInlineUrl(fileTrimmed),
+      href: docPageUrl,
       rawUrl: fileTrimmed,
       isPdf: true,
       title: defaultTitle,

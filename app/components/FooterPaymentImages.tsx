@@ -1,10 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
-import { FiExternalLink, FiDownload, FiX } from "react-icons/fi";
-
-import PdfCanvasViewer from "./PdfCanvasViewer";
+import Link from "next/link";
 
 export type FooterPaymentImageItem = {
   src: string;
@@ -21,44 +18,49 @@ function footerImageUrl(src: string) {
 }
 
 export default function FooterPaymentImages({ items }: { items: FooterPaymentImageItem[] }) {
-  const [activePdf, setActivePdf] = useState<{ url: string; rawUrl: string; title: string } | null>(null);
-
-  function handleClick(e: React.MouseEvent, item: FooterPaymentImageItem) {
-    if (item.isPdf && (item.href || item.rawUrl)) {
-      e.preventDefault();
-      setActivePdf({
-        url: item.href,
-        rawUrl: item.rawUrl || item.href,
-        title: item.title || "عرض المستند",
-      });
-    }
-  }
-
   if (items.length === 0) return null;
 
   return (
-    <>
-      <div className="mt-5 flex flex-wrap items-start justify-center gap-x-5 gap-y-4 sm:justify-end">
-        {items.map((item, i) => (
+    <div className="mt-5 flex flex-wrap items-start justify-center gap-x-5 gap-y-4 sm:justify-end">
+      {items.map((item, i) => {
+        const isInternalLink = item.href && (item.href.startsWith("/") || item.href.startsWith("#"));
+
+        return (
           <div key={i} className="flex w-[65px] shrink-0 flex-col items-center gap-1.5 text-center">
             {item.href ? (
-              <a
-                href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => handleClick(e, item)}
-                className="shrink-0 transition-transform duration-150 hover:scale-105 cursor-pointer"
-                title={item.isPdf ? `عرض ${item.title || "المستند"}` : item.title || undefined}
-              >
-                <Image
-                  src={footerImageUrl(item.src)}
-                  alt={item.title || `وسيلة دفع ${i + 1}`}
-                  width={65}
-                  height={40}
-                  className="object-contain"
-                  style={{ width: 65, height: 40 }}
-                />
-              </a>
+              isInternalLink ? (
+                <Link
+                  href={item.href}
+                  className="shrink-0 transition-transform duration-150 hover:scale-105 cursor-pointer"
+                  title={item.title ? `عرض ${item.title}` : undefined}
+                >
+                  <Image
+                    src={footerImageUrl(item.src)}
+                    alt={item.title || `وسيلة دفع ${i + 1}`}
+                    width={65}
+                    height={40}
+                    className="object-contain"
+                    style={{ width: 65, height: 40 }}
+                  />
+                </Link>
+              ) : (
+                <a
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 transition-transform duration-150 hover:scale-105 cursor-pointer"
+                  title={item.title ? `عرض ${item.title}` : undefined}
+                >
+                  <Image
+                    src={footerImageUrl(item.src)}
+                    alt={item.title || `وسيلة دفع ${i + 1}`}
+                    width={65}
+                    height={40}
+                    className="object-contain"
+                    style={{ width: 65, height: 40 }}
+                  />
+                </a>
+              )
             ) : (
               <Image
                 src={footerImageUrl(item.src)}
@@ -75,17 +77,8 @@ export default function FooterPaymentImages({ items }: { items: FooterPaymentIma
               </span>
             )}
           </div>
-        ))}
-      </div>
-
-      {/* PDF Canvas Viewer Modal */}
-      {activePdf && (
-        <PdfCanvasViewer
-          url={activePdf.url}
-          title={activePdf.title}
-          onClose={() => setActivePdf(null)}
-        />
-      )}
-    </>
+        );
+      })}
+    </div>
   );
 }
