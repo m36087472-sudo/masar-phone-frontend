@@ -43,6 +43,28 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // ── Admin auth guard ──────────────────────────────────────────────────────
+  // Protect all /admin routes except /admin/login itself.
+  if (pathname.startsWith("/admin") && pathname !== "/admin/login") {
+    const adminToken = req.cookies.get("admin_token")?.value;
+    if (!adminToken) {
+      const loginUrl = req.nextUrl.clone();
+      loginUrl.pathname = "/admin/login";
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  // Redirect /admin/login to /admin/dashboard if already logged in.
+  if (pathname === "/admin/login") {
+    const adminToken = req.cookies.get("admin_token")?.value;
+    if (adminToken) {
+      const dashboardUrl = req.nextUrl.clone();
+      dashboardUrl.pathname = "/admin/dashboard";
+      return NextResponse.redirect(dashboardUrl);
+    }
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   const res = NextResponse.next();
 
   // Read saved cookie
