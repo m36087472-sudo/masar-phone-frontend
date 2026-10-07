@@ -6,11 +6,20 @@ import ClientLayout from "./components/ClientLayout";
 import Footer from "./components/Footer";
 import { getCachedCompany } from "./lib/products-cache";
 
-const notoKufiArabic = Noto_Kufi_Arabic({
+// Turbopack in Next.js 16 requires one weight per font/google call.
+// Splitting into two instances and combining the CSS variable.
+const notoKufiArabic400 = Noto_Kufi_Arabic({
   subsets: ["arabic"],
-  weight: ["400", "700"],
+  weight: ["400"],
   display: "swap",
   variable: "--font-noto-kufi",
+});
+
+const notoKufiArabic700 = Noto_Kufi_Arabic({
+  subsets: ["arabic"],
+  weight: ["700"],
+  display: "swap",
+  variable: "--font-noto-kufi-bold",
 });
 
 const SITE_URL = "https://masaralmathaliya.com";
@@ -107,7 +116,7 @@ export default async function RootLayout({
   const whatsapp: string = c.whatsapp || "";
 
   return (
-    <html lang="ar" dir="rtl" className={notoKufiArabic.variable}>
+    <html lang="ar" dir="rtl" className={`${notoKufiArabic400.variable} ${notoKufiArabic700.variable}`}>
       <head>
         <meta name="apple-mobile-web-app-title" content="مسار الهاتف المعتمد" />
         <Script
